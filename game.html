@@ -295,8 +295,7 @@ function spawnObstacle() {
   }
 }
 
-function spawnFish() {
-  // 물고기 3개 한 줄
+function spawnFishRow() {
   const l=Math.floor(Math.random()*3);
   for (let i=0;i<3;i++) {
     fishes.push({lane:l, x:LANES[l], y:-50-i*44, w:30, h:20, bob:i*1.2, collected:false});
@@ -676,7 +675,7 @@ function drawGyroIndicator() {
   ctx.save();
   ctx.globalAlpha=0.5;
   ctx.fillStyle='rgba(0,0,0,0.25)';
-  ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,4); ctx.fill();
+  roundRect(ctx,bx,by,bw,bh,4); ctx.fill();
   // 기울기 포인터
   const clampedG = Math.max(-45,Math.min(45,gyroGamma));
   const px2 = bx + bw/2 + (clampedG/45)*(bw/2-6);
