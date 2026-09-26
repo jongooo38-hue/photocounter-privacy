@@ -32,6 +32,12 @@ canvas { display:block; width:360px; height:640px; border-radius:24px; box-shado
   padding:6px 12px; font-size:20px; letter-spacing:3px;
   box-shadow:0 2px 8px rgba(0,0,80,.15);
 }
+#calibBtn {
+  position:absolute; bottom:36px; right:12px;
+  background:rgba(255,255,255,.75); border:none; border-radius:12px;
+  padding:6px 12px; font-size:13px; font-weight:700; color:#1155cc;
+  cursor:pointer; display:none; box-shadow:0 2px 6px rgba(0,0,80,.15);
+}
 #overlay {
   position:absolute; inset:0; border-radius:24px;
   background:linear-gradient(160deg,rgba(20,80,200,.92),rgba(10,40,120,.95));
@@ -59,6 +65,7 @@ canvas { display:block; width:360px; height:640px; border-radius:24px; box-shado
     <div id="scoreBox">🐟 0</div>
     <div id="livesBox">❤️❤️❤️❤️❤️</div>
   </div>
+  <button id="calibBtn" onclick="calibrateGyro()">📐 중앙보정</button>
   <div id="overlay">
     <div class="ov-title">🐧 슈퍼펭귄!</div>
     <div class="ov-sub">광고 없는 깨끗한 게임 ✨</div>
@@ -137,9 +144,9 @@ function startBgMusic() {
 function stopBgMusic() { clearInterval(bgTimer); bgTimer=null; }
 
 // ── 자이로 ────────────────────────────────────────────────
-let gyroEnabled=false, gyroGamma=0;
-const GYRO_DEAD = 8;   // 이 각도 이내는 무시 (데드존)
-const GYRO_MAX  = 35;  // 최대 반응 각도
+let gyroEnabled=false, gyroGamma=0, gyroBaseline=0;
+const GYRO_DEAD = 15;  // 데드존 (이 각도 이내 → 중앙 복귀)
+const GYRO_MAX  = 45;  // 최대 반응 각도 (더 크게 기울여야 끝에 닿음)
 
 function setupGyro() {
   if (!window.DeviceOrientationEvent) return;
@@ -149,12 +156,20 @@ function setupGyro() {
   });
   gyroEnabled=true;
 }
+
+function calibrateGyro() {
+  // 현재 기울기를 0점으로 저장
+  gyroBaseline=gyroGamma;
+}
+
 async function requestGyroAndStart() {
   if (typeof DeviceOrientationEvent!=='undefined' &&
       typeof DeviceOrientationEvent.requestPermission==='function') {
     try { if (await DeviceOrientationEvent.requestPermission()==='granted') setupGyro(); }
     catch(e){}
   } else { setupGyro(); }
+  // 0.15초 후 캘리브레이션 (이벤트가 먼저 도착하도록)
+  setTimeout(calibrateGyro, 150);
   startGame();
 }
 
@@ -192,6 +207,8 @@ function updateHUD() {
 function startGame() {
   document.getElementById('overlay').style.display='none';
   initGame(); state='playing'; sfxStart(); startBgMusic();
+  const cb=document.getElementById('calibBtn');
+  if(gyroEnabled) cb.style.display='block'; else cb.style.display='none';
 }
 
 // ── 입력 ──────────────────────────────────────────────────
@@ -524,9 +541,17 @@ function update(){
 
   // 이동 결정 (우선순위: 자이로 > 터치드래그 > 키보드)
   if(gyroEnabled){
-    const g=Math.max(-GYRO_MAX,Math.min(GYRO_MAX,gyroGamma));
-    const deadFiltered=Math.abs(g)<GYRO_DEAD?0:g;
-    p.targetX=W/2+(deadFiltered/GYRO_MAX)*((MAX_X-MIN_X)/2);
+    const raw=gyroGamma-gyroBaseline;          // 캘리브레이션 적용
+    const g=Math.max(-GYRO_MAX,Math.min(GYRO_MAX,raw));
+    if(Math.abs(g)<GYRO_DEAD){
+      // 데드존: 중앙으로 천천히 복귀
+      p.targetX+=(W/2-p.targetX)*0.05;
+    } else {
+      // 데드존 밖: 선형 매핑
+      const sign=g>0?1:-1;
+      const t=(Math.abs(g)-GYRO_DEAD)/(GYRO_MAX-GYRO_DEAD);
+      p.targetX=W/2+sign*t*((MAX_X-MIN_X)/2);
+    }
   } else if(touchActive){
     p.targetX=touchCurX;
   } else {
