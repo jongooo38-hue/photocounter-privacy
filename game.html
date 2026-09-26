@@ -123,11 +123,11 @@ canvas {
     <div class="ov-sub">광고 없는 깨끗한 게임 ✨</div>
     <div id="bestLine" class="ov-best"></div>
     <div class="ov-hint">
-      ← → 화살표 / 화면 좌우 누르기<br>
-      레인을 바꿔 문어를 피하세요!<br>
+      📱 기기를 기울여서 레인 이동!<br>
+      ← → 화살표 / 화면 좌우 탭도 가능<br>
       🐟 물고기를 모아요!
     </div>
-    <button id="startBtn" onclick="startGame()">▶ 시작!</button>
+    <button id="startBtn" onclick="requestGyroAndStart()">▶ 시작!</button>
   </div>
 </div>
 
@@ -156,6 +156,36 @@ let score, best = 0, lives, frame, speed;
 let penguin, obstacles, fishes, particles, cloudObjs, tileOffset;
 let touchStartX = null, touchStartY = null;
 let nextObstacle, nextFish, comboFish, lastLane;
+
+// ── 자이로스코프 ───────────────────────────────────────────
+let gyroEnabled = false;
+let gyroGamma   = 0;      // 좌우 기울기 (-90 ~ +90)
+let gyroCooldown = 0;     // 레인 전환 쿨다운 (프레임)
+const GYRO_THRESHOLD = 12; // 기울기 감도 (도)
+const GYRO_COOLDOWN  = 18; // 전환 후 대기 프레임
+
+function setupGyro() {
+  if (!window.DeviceOrientationEvent) return;
+  window.addEventListener('deviceorientation', e => {
+    if (e.gamma === null) return;
+    gyroGamma = e.gamma; // 좌우 기울기
+  });
+  gyroEnabled = true;
+}
+
+async function requestGyroAndStart() {
+  // iOS 13+ 권한 요청
+  if (typeof DeviceOrientationEvent !== 'undefined' &&
+      typeof DeviceOrientationEvent.requestPermission === 'function') {
+    try {
+      const perm = await DeviceOrientationEvent.requestPermission();
+      if (perm === 'granted') setupGyro();
+    } catch(e) { /* 거부됨 — 터치로 대체 */ }
+  } else {
+    setupGyro(); // Android / 기타
+  }
+  startGame();
+}
 
 // ── 배경 요소 ─────────────────────────────────────────────
 function makeClouds() {
@@ -639,6 +669,22 @@ function drawParticles() {
 }
 
 // ── 상단 진행바 ───────────────────────────────────────────
+function drawGyroIndicator() {
+  if (!gyroEnabled) return;
+  // 화면 하단 중앙에 기울기 표시바
+  const bw=100, bh=8, bx=(W-bw)/2, by=H-28;
+  ctx.save();
+  ctx.globalAlpha=0.5;
+  ctx.fillStyle='rgba(0,0,0,0.25)';
+  ctx.beginPath(); ctx.roundRect(bx,by,bw,bh,4); ctx.fill();
+  // 기울기 포인터
+  const clampedG = Math.max(-45,Math.min(45,gyroGamma));
+  const px2 = bx + bw/2 + (clampedG/45)*(bw/2-6);
+  ctx.fillStyle='#ffd700';
+  ctx.beginPath(); ctx.arc(px2, by+bh/2, 7, 0, Math.PI*2); ctx.fill();
+  ctx.restore();
+}
+
 function drawProgressBar() {
   const pct = Math.min((speed-INIT_SPEED)/(MAX_SPEED-INIT_SPEED), 1);
   ctx.save();
@@ -704,7 +750,7 @@ function gameOver() {
     <div class="ov-title" style="color:#ff8800;">😢 게임 오버!</div>
     <div class="ov-score-big">${score}점</div>
     <div class="ov-best">${score>0&&score===best?'🎉 최고기록 달성!':'🏆 최고: '+best+'점'}</div>
-    <button id="startBtn" onclick="startGame()">▶ 다시 하기!</button>
+    <button id="startBtn" onclick="requestGyroAndStart()">▶ 다시 하기!</button>
     <div class="ov-hint">화면을 눌러도 돼요! 😊</div>
   `;
   ov.style.display='flex';
@@ -718,6 +764,19 @@ function update() {
   if (frame%SPEED_UP_INT===0) speed=Math.min(speed+SPEED_UP_AMT, MAX_SPEED);
 
   const p=penguin;
+
+  // 자이로 레인 전환
+  if (gyroEnabled && gyroCooldown===0) {
+    if (gyroGamma < -GYRO_THRESHOLD) {
+      moveLeft();
+      gyroCooldown = GYRO_COOLDOWN;
+    } else if (gyroGamma > GYRO_THRESHOLD) {
+      moveRight();
+      gyroCooldown = GYRO_COOLDOWN;
+    }
+  }
+  if (gyroCooldown > 0) gyroCooldown--;
+
   // 레인 이동 (부드럽게)
   p.x += (p.targetX-p.x)*0.18;
 
@@ -790,6 +849,7 @@ function draw() {
   drawParticles();
   drawScorePopups();
   drawProgressBar();
+  drawGyroIndicator();
 }
 
 // ── idle ──────────────────────────────────────────────────
