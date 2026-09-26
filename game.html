@@ -5,165 +5,158 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>슈퍼펭귄</title>
 <style>
-  * { margin: 0; padding: 0; box-sizing: border-box; }
-  body {
-    background: #0a1628;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    min-height: 100vh;
-    font-family: 'Segoe UI', sans-serif;
-    overflow: hidden;
-    user-select: none;
-  }
-  #gameWrapper {
-    position: relative;
-    width: 100%;
-    max-width: 800px;
-  }
-  canvas {
-    display: block;
-    width: 100%;
-    border-radius: 12px;
-    box-shadow: 0 0 40px rgba(100, 200, 255, 0.3);
-    cursor: pointer;
-  }
-  #ui {
-    position: absolute;
-    top: 0; left: 0; right: 0; bottom: 0;
-    pointer-events: none;
-  }
-  #score {
-    position: absolute;
-    top: 16px; right: 20px;
-    color: #fff;
-    font-size: 22px;
-    font-weight: 700;
-    text-shadow: 0 2px 8px rgba(0,0,0,0.5);
-  }
-  #best {
-    position: absolute;
-    top: 44px; right: 20px;
-    color: #aed6f1;
-    font-size: 14px;
-    text-shadow: 0 1px 4px rgba(0,0,0,0.5);
-  }
-  #lives {
-    position: absolute;
-    top: 16px; left: 20px;
-    font-size: 22px;
-    letter-spacing: 4px;
-  }
-  #overlay {
-    position: absolute;
-    inset: 0;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    background: rgba(10, 22, 40, 0.75);
-    border-radius: 12px;
-    pointer-events: all;
-    gap: 12px;
-  }
-  #overlay h1 {
-    font-size: 42px;
-    color: #fff;
-    text-shadow: 0 0 20px #64c8ff;
-  }
-  #overlay .sub {
-    font-size: 16px;
-    color: #aed6f1;
-  }
-  #overlay .hint {
-    font-size: 13px;
-    color: #7fb3d3;
-    margin-top: 4px;
-  }
-  #startBtn {
-    margin-top: 8px;
-    padding: 14px 40px;
-    font-size: 20px;
-    font-weight: 700;
-    background: linear-gradient(135deg, #1e90ff, #0055cc);
-    color: #fff;
-    border: none;
-    border-radius: 50px;
-    cursor: pointer;
-    box-shadow: 0 4px 20px rgba(30,144,255,0.5);
-    transition: transform 0.1s, box-shadow 0.1s;
-  }
-  #startBtn:hover { transform: scale(1.05); box-shadow: 0 6px 28px rgba(30,144,255,0.7); }
-  #startBtn:active { transform: scale(0.97); }
-  #gameOverTitle { color: #ff6b6b; text-shadow: 0 0 20px #ff4444; }
-  #finalScore { font-size: 18px; color: #fff; }
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: #0a1628;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: 100vh;
+  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  overflow: hidden;
+  user-select: none;
+  touch-action: none;
+}
+#wrap {
+  position: relative;
+  width: 360px;
+  height: 640px;
+}
+canvas {
+  display: block;
+  width: 360px;
+  height: 640px;
+  border-radius: 20px;
+  box-shadow: 0 0 60px rgba(100,200,255,0.35);
+}
+#hud {
+  position: absolute;
+  top: 0; left: 0; right: 0;
+  padding: 14px 18px;
+  pointer-events: none;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+}
+#scoreBox {
+  background: rgba(0,0,0,0.45);
+  border-radius: 12px;
+  padding: 6px 14px;
+  color: #fff;
+  font-size: 20px;
+  font-weight: 700;
+}
+#livesBox {
+  background: rgba(0,0,0,0.45);
+  border-radius: 12px;
+  padding: 6px 10px;
+  font-size: 20px;
+  letter-spacing: 3px;
+}
+#overlay {
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: rgba(5,15,35,0.82);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+#overlay h1 { font-size: 40px; color: #fff; text-shadow: 0 0 24px #5ce; }
+.sub  { color: #adf; font-size: 15px; }
+.hint { color: #6af; font-size: 13px; margin-top: 4px; text-align: center; line-height: 1.6; }
+#startBtn {
+  margin-top: 10px;
+  padding: 14px 44px;
+  font-size: 20px;
+  font-weight: 700;
+  background: linear-gradient(135deg,#1e90ff,#0055cc);
+  color: #fff;
+  border: none;
+  border-radius: 50px;
+  cursor: pointer;
+  box-shadow: 0 4px 24px rgba(30,144,255,.55);
+  transition: transform .1s;
+}
+#startBtn:active { transform: scale(.95); }
+#bestBox { color: #7fc; font-size: 15px; }
+/* swipe controls overlay */
+#ctrlLeft, #ctrlRight {
+  position: absolute;
+  top: 0; bottom: 0;
+  width: 50%;
+  opacity: 0;
+  pointer-events: all;
+}
+#ctrlLeft  { left: 0; }
+#ctrlRight { right: 0; }
 </style>
 </head>
 <body>
-<div id="gameWrapper">
-  <canvas id="c"></canvas>
-  <div id="ui">
-    <div id="score">점수: 0</div>
-    <div id="best">최고: 0</div>
-    <div id="lives">🐧🐧🐧</div>
-    <div id="overlay">
-      <h1>🐧 슈퍼펭귄</h1>
-      <div class="sub">광고 없는 깨끗한 게임</div>
-      <div class="hint">스페이스 / 클릭 / 탭 → 점프 &nbsp;|&nbsp; 더블점프 가능!</div>
-      <button id="startBtn" onclick="startGame()">게임 시작</button>
-    </div>
+<div id="wrap">
+  <canvas id="c" width="360" height="640"></canvas>
+  <div id="hud">
+    <div id="scoreBox">0</div>
+    <div id="livesBox">🐧🐧🐧</div>
   </div>
+  <div id="overlay">
+    <h1>🐧 슈퍼펭귄</h1>
+    <div class="sub">광고 없는 깨끗한 게임</div>
+    <div id="bestBox">최고기록: 0</div>
+    <div class="hint">← → / 스와이프 : 레인 이동<br>스페이스 / 탭 : 점프</div>
+    <button id="startBtn" onclick="startGame()">게임 시작</button>
+  </div>
+  <div id="ctrlLeft"  onclick="moveLeft()"></div>
+  <div id="ctrlRight" onclick="moveRight()"></div>
 </div>
 
 <script>
 const canvas = document.getElementById('c');
-const ctx = canvas.getContext('2d');
-const W = 800, H = 300;
-canvas.width = W; canvas.height = H;
+const ctx    = canvas.getContext('2d');
+const W = 360, H = 640;
 
-const GROUND = H - 60;
-const GRAVITY = 0.55;
-const JUMP_V = -13;
+// ── constants ─────────────────────────────────────────────
+const LANES    = [80, 180, 280];        // x centres of 3 lanes
+const LANE_W   = 80;
+const PENG_Y   = H - 110;
+const GROUND_Y = H - 60;
+const GRAVITY  = 0.7;
+const JUMP_V   = -15;
 
-let state = 'idle'; // idle | playing | dead
-let score, best = 0, lives, frame, speed, spawnTimer, bgOffset, cloudOffset;
-let penguin, obstacles, fishes, particles, clouds;
+// ── state ─────────────────────────────────────────────────
+let state = 'idle';
+let score, best = 0, lives, frame, speed;
+let penguin, obstacles, fishes, particles, tileOffset;
+let bgStars;
+let touchStartX = null;
 
+// ── init ──────────────────────────────────────────────────
 function initGame() {
-  score = 0;
-  lives = 3;
-  frame = 0;
-  speed = 4;
-  spawnTimer = 60;
-  bgOffset = 0;
-  cloudOffset = 0;
-
+  score = 0; lives = 3; frame = 0; speed = 4; tileOffset = 0;
   penguin = {
-    x: 100, y: GROUND, w: 44, h: 52,
+    lane: 1, x: LANES[1], y: PENG_Y,
     vy: 0, onGround: true, jumps: 0,
-    frame: 0, frameTimer: 0,
-    invincible: 0, slideTimer: 0
+    targetX: LANES[1], moving: false,
+    invincible: 0, dead: false
   };
-
-  obstacles = [];
-  fishes = [];
-  particles = [];
-  clouds = [
-    { x: 200, y: 40, s: 1 },
-    { x: 500, y: 25, s: 0.8 },
-    { x: 720, y: 55, s: 1.2 }
-  ];
-
-  updateUI();
+  obstacles = []; fishes = []; particles = [];
+  bgStars = Array.from({length:30}, () => ({
+    x: Math.random()*W, y: Math.random()*H,
+    r: Math.random()*1.5+0.5,
+    twinkle: Math.random()*Math.PI*2
+  }));
+  updateHUD();
 }
 
-function updateUI() {
-  document.getElementById('score').textContent = '점수: ' + score;
-  document.getElementById('best').textContent = '최고: ' + best;
-  const h = ['🐧','🐧','🐧'];
-  for (let i = lives; i < 3; i++) h[i] = '🩶';
-  document.getElementById('lives').textContent = h.join('');
+function updateHUD() {
+  document.getElementById('scoreBox').textContent = score;
+  const icons = Array(3).fill('🐧');
+  for (let i = lives; i < 3; i++) icons[i] = '🩶';
+  document.getElementById('livesBox').textContent = icons.join('');
+  document.getElementById('bestBox').textContent = '최고기록: ' + best;
 }
 
 function startGame() {
@@ -172,487 +165,437 @@ function startGame() {
   state = 'playing';
 }
 
-function jump() {
-  if (state === 'idle') { startGame(); return; }
-  if (state === 'dead') { startGame(); return; }
+// ── controls ──────────────────────────────────────────────
+function moveLeft()  { if (state!=='playing') return; if (penguin.lane>0) { penguin.lane--; penguin.targetX=LANES[penguin.lane]; } }
+function moveRight() { if (state!=='playing') return; if (penguin.lane<2) { penguin.lane++; penguin.targetX=LANES[penguin.lane]; } }
+function doJump()    {
+  if (state==='idle'||state==='dead') { startGame(); return; }
   if (penguin.jumps < 2) {
-    penguin.vy = penguin.jumps === 0 ? JUMP_V : JUMP_V * 0.85;
+    penguin.vy = penguin.jumps===0 ? JUMP_V : JUMP_V*0.8;
     penguin.onGround = false;
     penguin.jumps++;
-    spawnParticles(penguin.x + 22, penguin.y + 52, '#aef', 6);
+    spawnParticles(penguin.x, penguin.y+30, '#aef', 6);
   }
 }
 
 document.addEventListener('keydown', e => {
-  if (e.code === 'Space' || e.code === 'ArrowUp') { e.preventDefault(); jump(); }
+  if (e.code==='ArrowLeft'  || e.key==='a') { e.preventDefault(); moveLeft(); }
+  if (e.code==='ArrowRight' || e.key==='d') { e.preventDefault(); moveRight(); }
+  if (e.code==='Space' || e.code==='ArrowUp') { e.preventDefault(); doJump(); }
 });
-canvas.addEventListener('click', jump);
-canvas.addEventListener('touchstart', e => { e.preventDefault(); jump(); }, { passive: false });
 
-// ── spawn helpers ──────────────────────────────────────────
-function spawnObstacle() {
-  const r = Math.random();
-  if (r < 0.5) {
-    // iceberg on ground
-    const h = 30 + Math.random() * 35;
-    obstacles.push({ x: W + 20, y: GROUND + 52 - h, w: 30, h, type: 'berg' });
-  } else if (r < 0.8) {
-    // snowball rolling
-    obstacles.push({ x: W + 20, y: GROUND + 30, w: 28, h: 28, type: 'ball', angle: 0 });
-  } else {
-    // flying seagull
-    const fy = 120 + Math.random() * 80;
-    obstacles.push({ x: W + 20, y: fy, w: 38, h: 22, type: 'bird', flap: 0 });
+// touch swipe
+canvas.addEventListener('touchstart', e => {
+  e.preventDefault();
+  touchStartX = e.touches[0].clientX;
+}, {passive:false});
+canvas.addEventListener('touchend', e => {
+  e.preventDefault();
+  if (touchStartX === null) return;
+  const dx = e.changedTouches[0].clientX - touchStartX;
+  if (Math.abs(dx) < 20) { doJump(); }
+  else if (dx < 0) moveLeft();
+  else moveRight();
+  touchStartX = null;
+}, {passive:false});
+
+// ── spawn ─────────────────────────────────────────────────
+let nextObstacle = 80, nextFish = 120;
+
+function spawnRow() {
+  // pick 1–2 blocked lanes
+  const count = Math.random()<0.4 ? 2 : 1;
+  const lanesCopy = [0,1,2].sort(()=>Math.random()-0.5);
+  const blocked = lanesCopy.slice(0, count);
+  for (const l of blocked) {
+    const type = Math.random()<0.6 ? 'octo' : 'rock';
+    obstacles.push({ lane:l, x:LANES[l], y:-60, w:50, h:50, type, angle:0 });
   }
 }
 
-function spawnFish() {
-  const y = GROUND - 20 - Math.random() * 80;
-  fishes.push({ x: W + 20, y, w: 26, h: 18, bob: Math.random() * Math.PI * 2 });
-}
-
-function spawnParticles(x, y, color, n) {
-  for (let i = 0; i < n; i++) {
-    particles.push({
-      x, y,
-      vx: (Math.random() - 0.5) * 4,
-      vy: -Math.random() * 4 - 1,
-      life: 1,
-      color
-    });
+function spawnFishRow() {
+  const l = Math.floor(Math.random()*3);
+  for (let i=0; i<3; i++) {
+    fishes.push({ lane:l, x:LANES[l], y:-40 - i*36, w:24, h:16, bob:Math.random()*Math.PI*2, collected:false });
   }
 }
 
-// ── collision ──────────────────────────────────────────────
-function rectsOverlap(a, b, margin = 8) {
-  return a.x + margin < b.x + b.w - margin &&
-         a.x + a.w - margin > b.x + margin &&
-         a.y + margin < b.y + b.h - margin &&
-         a.y + a.h - margin > b.y + margin;
+function spawnParticles(x,y,color,n) {
+  for (let i=0;i<n;i++) {
+    particles.push({x,y,vx:(Math.random()-0.5)*5,vy:-Math.random()*5-1,life:1,color});
+  }
 }
 
-// ── draw helpers ───────────────────────────────────────────
-function drawBackground() {
-  // sky gradient
-  const sky = ctx.createLinearGradient(0, 0, 0, H);
-  sky.addColorStop(0, '#0a1a3a');
-  sky.addColorStop(1, '#163d6e');
-  ctx.fillStyle = sky;
-  ctx.fillRect(0, 0, W, H);
+// ── collision ─────────────────────────────────────────────
+function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh, m=10) {
+  return ax+m < bx+bw-m && ax+aw-m > bx+m &&
+         ay+m < by+bh-m && ay+ah-m > by+m;
+}
 
-  // aurora strips
-  ctx.save();
-  ctx.globalAlpha = 0.12;
-  ctx.fillStyle = '#00ffcc';
-  ctx.beginPath();
-  ctx.ellipse(200 + Math.sin(frame * 0.008) * 30, 60, 220, 25, 0.2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.fillStyle = '#aa44ff';
-  ctx.beginPath();
-  ctx.ellipse(580 + Math.sin(frame * 0.01) * 20, 80, 180, 18, -0.1, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.restore();
+// ── draw helpers ──────────────────────────────────────────
+function drawBg() {
+  // ice track background
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0,'#061428');
+  grad.addColorStop(1,'#0d2a50');
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
 
   // stars
-  ctx.save();
-  ctx.fillStyle = '#fff';
-  const starSeeds = [13,37,71,99,157,213,277,333];
-  for (const s of starSeeds) {
-    const sx = ((s * 97 + bgOffset * 0.1) % W);
-    const sy = (s * 43) % (GROUND - 80);
-    const alpha = 0.4 + Math.sin(frame * 0.05 + s) * 0.3;
-    ctx.globalAlpha = alpha;
-    ctx.fillRect(sx, sy, 2, 2);
+  for (const s of bgStars) {
+    s.twinkle += 0.03;
+    ctx.globalAlpha = 0.4 + Math.sin(s.twinkle)*0.3;
+    ctx.fillStyle = '#fff';
+    ctx.beginPath();
+    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
+    ctx.fill();
   }
-  ctx.restore();
-
-  // clouds
-  for (const cl of clouds) {
-    cl.x -= speed * 0.3;
-    if (cl.x < -120) cl.x = W + 60;
-    drawCloud(cl.x, cl.y, cl.s);
-  }
-
-  // ground ice
-  ctx.fillStyle = '#1a4a7a';
-  ctx.fillRect(0, GROUND + 52, W, H - GROUND - 52);
-
-  // ice surface shine
-  const iceX = (-bgOffset * 0.5) % 80;
-  ctx.save();
-  ctx.globalAlpha = 0.25;
-  ctx.fillStyle = '#ffffff';
-  for (let x = iceX; x < W; x += 80) {
-    ctx.fillRect(x, GROUND + 52, 40, 4);
-  }
-  ctx.restore();
-
-  // ground line
-  ctx.strokeStyle = '#3af';
-  ctx.lineWidth = 2;
-  ctx.globalAlpha = 0.6;
-  ctx.beginPath();
-  ctx.moveTo(0, GROUND + 52);
-  ctx.lineTo(W, GROUND + 52);
-  ctx.stroke();
   ctx.globalAlpha = 1;
-}
 
-function drawCloud(x, y, s) {
+  // aurora
   ctx.save();
-  ctx.globalAlpha = 0.15;
-  ctx.fillStyle = '#aef';
-  ctx.beginPath();
-  ctx.arc(x, y, 22 * s, 0, Math.PI * 2);
-  ctx.arc(x + 20 * s, y - 8 * s, 16 * s, 0, Math.PI * 2);
-  ctx.arc(x + 38 * s, y, 20 * s, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.globalAlpha = 0.08 + Math.sin(frame*0.01)*0.03;
+  const ag = ctx.createLinearGradient(0,80,W,80);
+  ag.addColorStop(0,'#00ffcc'); ag.addColorStop(0.5,'#aa44ff'); ag.addColorStop(1,'#00ffcc');
+  ctx.fillStyle = ag;
+  ctx.fillRect(0,60,W,80);
+  ctx.restore();
+
+  // 3 lanes (ice path)
+  for (let l=0;l<3;l++) {
+    const lx = LANES[l]-LANE_W/2;
+    ctx.fillStyle = l===1 ? 'rgba(100,160,255,0.08)' : 'rgba(80,130,220,0.05)';
+    ctx.fillRect(lx, 0, LANE_W, H);
+    // lane line
+    if (l<2) {
+      ctx.save();
+      ctx.globalAlpha = 0.2;
+      ctx.strokeStyle = '#5af';
+      ctx.setLineDash([18,22]);
+      ctx.lineDashOffset = -tileOffset*0.8;
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.moveTo(LANES[l]+LANE_W/2, 0);
+      ctx.lineTo(LANES[l]+LANE_W/2, H);
+      ctx.stroke();
+      ctx.restore();
+    }
+  }
+
+  // ground
+  ctx.fillStyle = '#1a4a8a';
+  ctx.fillRect(0, GROUND_Y, W, H-GROUND_Y);
+  ctx.save();
+  ctx.globalAlpha = 0.4;
+  ctx.strokeStyle = '#4af';
+  ctx.lineWidth = 2;
+  ctx.beginPath(); ctx.moveTo(0,GROUND_Y); ctx.lineTo(W,GROUND_Y); ctx.stroke();
   ctx.restore();
 }
 
 function drawPenguin(p) {
   ctx.save();
-  if (p.invincible > 0 && Math.floor(frame / 4) % 2 === 0) {
-    ctx.globalAlpha = 0.4;
-  }
+  if (p.invincible>0 && Math.floor(frame/4)%2===0) ctx.globalAlpha = 0.35;
 
-  const px = p.x, py = p.y;
-  const bobY = p.onGround ? Math.sin(frame * 0.2) * 1.5 : 0;
+  const cx = p.x, cy = p.y;
+  const bobX = p.onGround ? Math.sin(frame*0.25)*2 : 0;
 
   // shadow
   ctx.save();
-  ctx.globalAlpha = 0.2;
-  ctx.fillStyle = '#000';
+  ctx.globalAlpha = 0.18;
+  ctx.fillStyle='#000';
   ctx.beginPath();
-  ctx.ellipse(px + 22, GROUND + 56, 18, 5, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx+bobX, GROUND_Y+4, 18, 5, 0, 0, Math.PI*2);
   ctx.fill();
   ctx.restore();
 
   // body
-  ctx.fillStyle = '#1a1a2e';
+  ctx.fillStyle='#1a1a2e';
   ctx.beginPath();
-  ctx.ellipse(px + 22, py + 32 + bobY, 17, 22, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx+bobX, cy, 16, 22, 0, 0, Math.PI*2);
   ctx.fill();
 
   // belly
-  ctx.fillStyle = '#e8f4f8';
+  ctx.fillStyle='#e8f4f8';
   ctx.beginPath();
-  ctx.ellipse(px + 22, py + 34 + bobY, 10, 16, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx+bobX, cy+3, 9, 14, 0, 0, Math.PI*2);
   ctx.fill();
 
   // head
-  ctx.fillStyle = '#1a1a2e';
+  ctx.fillStyle='#1a1a2e';
   ctx.beginPath();
-  ctx.arc(px + 22, py + 10 + bobY, 14, 0, Math.PI * 2);
+  ctx.arc(cx+bobX, cy-24, 13, 0, Math.PI*2);
   ctx.fill();
 
-  // eye white
-  ctx.fillStyle = '#fff';
-  ctx.beginPath();
-  ctx.arc(px + 28, py + 7 + bobY, 5, 0, Math.PI * 2);
-  ctx.fill();
-  // pupil
-  ctx.fillStyle = '#111';
-  ctx.beginPath();
-  ctx.arc(px + 30, py + 8 + bobY, 3, 0, Math.PI * 2);
-  ctx.fill();
+  // eye
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(cx+bobX+6, cy-26, 4.5, 0, Math.PI*2); ctx.fill();
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(cx+bobX+8, cy-25, 2.5, 0, Math.PI*2); ctx.fill();
 
   // beak
-  ctx.fillStyle = '#f4a300';
+  ctx.fillStyle='#f4a300';
   ctx.beginPath();
-  ctx.moveTo(px + 34, py + 13 + bobY);
-  ctx.lineTo(px + 42, py + 15 + bobY);
-  ctx.lineTo(px + 34, py + 17 + bobY);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(cx+bobX+12, cy-22);
+  ctx.lineTo(cx+bobX+20, cy-20);
+  ctx.lineTo(cx+bobX+12, cy-18);
+  ctx.closePath(); ctx.fill();
 
-  // wings (animated)
-  const wingAngle = p.onGround ? Math.sin(frame * 0.15) * 0.4 : -0.7;
-  ctx.fillStyle = '#1a1a2e';
-  ctx.save();
-  ctx.translate(px + 8, py + 28 + bobY);
-  ctx.rotate(-wingAngle);
-  ctx.fillRect(-4, -5, 8, 18);
-  ctx.restore();
-  ctx.save();
-  ctx.translate(px + 36, py + 28 + bobY);
-  ctx.rotate(wingAngle);
-  ctx.fillRect(-4, -5, 8, 18);
-  ctx.restore();
+  // wings flap
+  const wa = p.onGround ? Math.sin(frame*0.2)*0.5 : -0.8;
+  ctx.fillStyle='#111f3a';
+  ctx.save(); ctx.translate(cx+bobX-13,cy-5); ctx.rotate(wa);
+  ctx.fillRect(-4,-5,8,20); ctx.restore();
+  ctx.save(); ctx.translate(cx+bobX+13,cy-5); ctx.rotate(-wa);
+  ctx.fillRect(-4,-5,8,20); ctx.restore();
 
   // feet
-  ctx.fillStyle = '#f4a300';
-  if (p.onGround) {
-    const fStep = Math.sin(frame * 0.25) * 5;
-    ctx.fillRect(px + 12, py + 50 + bobY, 10, 5);
-    ctx.fillRect(px + 24, py + 50 + bobY + fStep, 10, 5);
-  } else {
-    ctx.fillRect(px + 12, py + 50, 10, 5);
-    ctx.fillRect(px + 26, py + 50, 10, 5);
-  }
+  ctx.fillStyle='#f4a300';
+  const fOff = p.onGround ? Math.sin(frame*0.25)*4 : 0;
+  ctx.fillRect(cx+bobX-14, cy+20+fOff, 10,5);
+  ctx.fillRect(cx+bobX+4,  cy+20-fOff, 10,5);
 
-  // double-jump sparkle
-  if (!p.onGround && p.jumps === 2) {
-    ctx.save();
-    ctx.globalAlpha = 0.6;
-    ctx.strokeStyle = '#64c8ff';
-    ctx.lineWidth = 2;
-    for (let i = 0; i < 4; i++) {
-      const a = (frame * 0.2 + i * Math.PI / 2);
-      ctx.beginPath();
-      ctx.arc(px + 22, py + 30 + bobY, 20, a, a + 0.5);
-      ctx.stroke();
-    }
-    ctx.restore();
-  }
+  // helmet (decoration)
+  ctx.fillStyle='#1e90ff';
+  ctx.beginPath();
+  ctx.arc(cx+bobX, cy-24, 13, Math.PI, 0);
+  ctx.fill();
+  // star on helmet
+  ctx.fillStyle='#ffd700';
+  drawStar(cx+bobX, cy-30, 5, 3, 4);
 
   ctx.restore();
 }
 
-function drawIceberg(o) {
-  ctx.fillStyle = '#7ec8e3';
+function drawStar(cx,cy,outerR,innerR,points) {
   ctx.beginPath();
-  ctx.moveTo(o.x, o.y + o.h);
-  ctx.lineTo(o.x + o.w * 0.3, o.y);
-  ctx.lineTo(o.x + o.w * 0.7, o.y + o.h * 0.2);
-  ctx.lineTo(o.x + o.w, o.y + o.h);
-  ctx.closePath();
-  ctx.fill();
-  ctx.fillStyle = 'rgba(255,255,255,0.4)';
-  ctx.beginPath();
-  ctx.moveTo(o.x + o.w * 0.3, o.y);
-  ctx.lineTo(o.x + o.w * 0.5, o.y + o.h * 0.3);
-  ctx.lineTo(o.x + o.w * 0.25, o.y + o.h * 0.5);
-  ctx.closePath();
-  ctx.fill();
+  for (let i=0;i<points*2;i++) {
+    const r = i%2===0?outerR:innerR;
+    const a = (i*Math.PI/points)-Math.PI/2;
+    i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+  }
+  ctx.closePath(); ctx.fill();
 }
 
-function drawSnowball(o) {
-  ctx.save();
-  ctx.translate(o.x + o.w / 2, o.y + o.h / 2);
-  ctx.rotate(o.angle);
-  ctx.fillStyle = '#d0eeff';
-  ctx.beginPath();
-  ctx.arc(0, 0, o.w / 2, 0, Math.PI * 2);
-  ctx.fill();
-  ctx.strokeStyle = '#aaddff';
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-o.w / 2, 0);
-  ctx.lineTo(o.w / 2, 0);
-  ctx.stroke();
-  ctx.beginPath();
-  ctx.moveTo(0, -o.h / 2);
-  ctx.lineTo(0, o.h / 2);
-  ctx.stroke();
-  ctx.restore();
-}
+function drawOcto(o) {
+  const cy = o.y;
+  const cx = o.x;
+  const bob = Math.sin(frame*0.12 + o.lane)*3;
 
-function drawBird(o) {
-  o.flap += 0.2;
-  const flapY = Math.sin(o.flap) * 5;
-  ctx.save();
-  ctx.translate(o.x + o.w / 2, o.y + flapY);
+  // tentacles
+  ctx.fillStyle='#c0392b';
+  for (let i=0;i<6;i++) {
+    const tx = cx + (i-2.5)*8;
+    const ty = cy+18+bob;
+    ctx.beginPath();
+    ctx.ellipse(tx, ty+12, 5, 10, (i-2.5)*0.15, 0, Math.PI*2);
+    ctx.fill();
+  }
+
   // body
-  ctx.fillStyle = '#e8e8e8';
+  const bg = ctx.createRadialGradient(cx,cy+bob,2,cx,cy+bob,24);
+  bg.addColorStop(0,'#e74c3c'); bg.addColorStop(1,'#922b21');
+  ctx.fillStyle=bg;
   ctx.beginPath();
-  ctx.ellipse(0, 0, 16, 9, 0, 0, Math.PI * 2);
+  ctx.ellipse(cx, cy+bob, 22, 20, 0, 0, Math.PI*2);
   ctx.fill();
-  // wings
-  ctx.fillStyle = '#ccc';
-  const wa = Math.sin(o.flap) * 0.6;
-  ctx.save(); ctx.rotate(-wa);
-  ctx.beginPath(); ctx.ellipse(-14, -4, 12, 5, 0.4, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
-  ctx.save(); ctx.rotate(wa);
-  ctx.beginPath(); ctx.ellipse(14, -4, 12, 5, -0.4, 0, Math.PI * 2); ctx.fill();
-  ctx.restore();
-  // beak
-  ctx.fillStyle = '#f4a300';
+
+  // head dome
+  ctx.fillStyle='#c0392b';
   ctx.beginPath();
-  ctx.moveTo(16, 0); ctx.lineTo(24, -2); ctx.lineTo(16, 4);
+  ctx.ellipse(cx, cy-10+bob, 18, 14, 0, 0, Math.PI*2);
+  ctx.fill();
+
+  // eyes (angry)
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(cx-8,cy-8+bob,5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+8,cy-8+bob,5,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(cx-7,cy-7+bob,3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+9,cy-7+bob,3,0,Math.PI*2); ctx.fill();
+  // angry brow
+  ctx.strokeStyle='#7b241c'; ctx.lineWidth=2.5;
+  ctx.beginPath(); ctx.moveTo(cx-13,cy-14+bob); ctx.lineTo(cx-3,cy-11+bob); ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+13,cy-14+bob); ctx.lineTo(cx+3,cy-11+bob); ctx.stroke();
+}
+
+function drawRock(o) {
+  ctx.save();
+  ctx.fillStyle='#4a7fa5';
+  ctx.beginPath();
+  ctx.moveTo(o.x, o.y-24);
+  ctx.lineTo(o.x-22, o.y+18);
+  ctx.lineTo(o.x+22, o.y+18);
+  ctx.closePath(); ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.25)';
+  ctx.beginPath();
+  ctx.moveTo(o.x, o.y-24);
+  ctx.lineTo(o.x+10, o.y);
+  ctx.lineTo(o.x-5, o.y+5);
   ctx.closePath(); ctx.fill();
   ctx.restore();
 }
 
 function drawFish(f) {
-  const by = Math.sin(frame * 0.08 + f.bob) * 4;
+  if (f.collected) return;
+  const by = Math.sin(frame*0.1+f.bob)*3;
   ctx.save();
-  ctx.translate(f.x + f.w / 2, f.y + by);
+  ctx.translate(f.x, f.y+by);
   // tail
-  ctx.fillStyle = '#ffd700';
+  ctx.fillStyle='#ffd700';
   ctx.beginPath();
-  ctx.moveTo(-f.w / 2 - 4, 0);
-  ctx.lineTo(-f.w / 2 + 2, -7);
-  ctx.lineTo(-f.w / 2 + 2, 7);
-  ctx.closePath();
-  ctx.fill();
+  ctx.moveTo(-f.w/2-4,0); ctx.lineTo(-f.w/2+2,-6); ctx.lineTo(-f.w/2+2,6);
+  ctx.closePath(); ctx.fill();
   // body
-  ctx.fillStyle = '#ffec00';
   ctx.beginPath();
-  ctx.ellipse(0, 0, f.w / 2, f.h / 2, 0, 0, Math.PI * 2);
+  ctx.ellipse(2,0,f.w/2,f.h/2,0,0,Math.PI*2);
   ctx.fill();
   // shine
-  ctx.fillStyle = 'rgba(255,255,255,0.5)';
-  ctx.beginPath();
-  ctx.ellipse(3, -3, 4, 2, -0.4, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle='rgba(255,255,255,0.5)';
+  ctx.beginPath(); ctx.ellipse(4,-3,3,2,-0.3,0,Math.PI*2); ctx.fill();
   // eye
-  ctx.fillStyle = '#222';
-  ctx.beginPath();
-  ctx.arc(f.w / 2 - 4, -2, 2.5, 0, Math.PI * 2);
-  ctx.fill();
+  ctx.fillStyle='#222';
+  ctx.beginPath(); ctx.arc(f.w/2-2,-1,2,0,Math.PI*2); ctx.fill();
   ctx.restore();
 }
 
 function drawParticles() {
   for (const p of particles) {
-    ctx.save();
-    ctx.globalAlpha = p.life;
-    ctx.fillStyle = p.color;
-    ctx.fillRect(p.x - 3, p.y - 3, 6, 6);
+    ctx.save(); ctx.globalAlpha=p.life;
+    ctx.fillStyle=p.color;
+    ctx.fillRect(p.x-3,p.y-3,6,6);
     ctx.restore();
   }
 }
 
-function drawHUD() {
-  // score flash on pickup
-  if (frame % 60 < 10 && score > 0) {
-    ctx.save();
-    ctx.globalAlpha = 0.15;
-    ctx.fillStyle = '#ffd700';
-    ctx.fillRect(0, 0, W, H);
-    ctx.restore();
-  }
+function drawDistanceBar() {
+  // top progress indicator
+  const pct = Math.min(score/2000, 1);
+  ctx.save();
+  ctx.globalAlpha=0.6;
+  ctx.fillStyle='#223';
+  ctx.fillRect(10,8,W-20,4);
+  ctx.fillStyle='#4af';
+  ctx.fillRect(10,8,(W-20)*pct,4);
+  ctx.restore();
 }
 
-// ── main loop ──────────────────────────────────────────────
+// ── game over ─────────────────────────────────────────────
+function gameOver() {
+  state='dead';
+  if (score>best) best=score;
+  updateHUD();
+  const ov=document.getElementById('overlay');
+  ov.innerHTML=`
+    <h1 style="color:#ff6b6b;text-shadow:0 0 20px #f44">💀 게임 오버</h1>
+    <div style="color:#fff;font-size:22px;font-weight:700;">점수: ${score}</div>
+    <div id="bestBox" style="color:#7fc;font-size:16px;">최고기록: ${best}</div>
+    <button id="startBtn" onclick="startGame()">다시 시작</button>
+    <div class="hint">← → : 레인이동 &nbsp;|&nbsp; 스페이스/탭 : 점프</div>
+  `;
+  ov.style.display='flex';
+}
+
+// ── update ────────────────────────────────────────────────
 function update() {
   frame++;
-  bgOffset += speed;
+  tileOffset += speed;
+  if (frame%240===0) speed = Math.min(speed+0.4, 14);
 
-  // speed ramp
-  if (frame % 300 === 0) speed = Math.min(speed + 0.5, 12);
-
-  // penguin physics
   const p = penguin;
+
+  // smooth lane movement
+  const dx = p.targetX - p.x;
+  p.x += dx * 0.2;
+
+  // jump physics
   p.vy += GRAVITY;
   p.y += p.vy;
-
-  if (p.y >= GROUND) {
-    p.y = GROUND;
-    p.vy = 0;
-    p.onGround = true;
-    p.jumps = 0;
+  if (p.y >= PENG_Y) {
+    p.y = PENG_Y; p.vy = 0; p.onGround=true; p.jumps=0;
   } else {
-    p.onGround = false;
+    p.onGround=false;
   }
+  if (p.invincible>0) p.invincible--;
 
-  if (p.invincible > 0) p.invincible--;
-
-  // spawn
-  spawnTimer--;
-  if (spawnTimer <= 0) {
-    spawnObstacle();
-    spawnTimer = Math.max(40, 100 - score * 0.5) | 0;
+  // spawn obstacles
+  nextObstacle--;
+  if (nextObstacle<=0) {
+    spawnRow();
+    nextObstacle = Math.max(45, 100 - score*0.04)|0;
   }
-  if (frame % 120 === 0) spawnFish();
+  nextFish--;
+  if (nextFish<=0) { spawnFishRow(); nextFish=90; }
 
-  // obstacles
-  for (let i = obstacles.length - 1; i >= 0; i--) {
-    const o = obstacles[i];
-    o.x -= speed;
-    if (o.type === 'ball') o.angle += speed * 0.08;
-    if (o.x + o.w < 0) { obstacles.splice(i, 1); continue; }
-
-    if (p.invincible === 0 && rectsOverlap(
-      { x: p.x, y: p.y, w: p.w, h: p.h }, o
-    )) {
+  // move obstacles
+  for (let i=obstacles.length-1;i>=0;i--) {
+    const o=obstacles[i];
+    o.y += speed;
+    if (o.y > H+80) { obstacles.splice(i,1); continue; }
+    if (p.invincible===0 && rectsOverlap(p.x-18,p.y-32,36,60, o.x-20,o.y-24,44,46)) {
       lives--;
-      p.invincible = 90;
-      spawnParticles(p.x + 22, p.y + 26, '#ff6b6b', 12);
-      updateUI();
-      if (lives <= 0) { gameOver(); return; }
+      p.invincible=90;
+      spawnParticles(p.x,p.y,'#ff6b6b',14);
+      updateHUD();
+      if (lives<=0) { gameOver(); return; }
     }
   }
 
-  // fishes
-  for (let i = fishes.length - 1; i >= 0; i--) {
-    const f = fishes[i];
-    f.x -= speed;
-    if (f.x + f.w < 0) { fishes.splice(i, 1); continue; }
-    if (rectsOverlap({ x: p.x, y: p.y, w: p.w, h: p.h }, f, 4)) {
-      score += 10;
-      spawnParticles(f.x + 13, f.y + 9, '#ffd700', 8);
-      fishes.splice(i, 1);
-      updateUI();
+  // move fishes
+  for (let i=fishes.length-1;i>=0;i--) {
+    const f=fishes[i];
+    f.y += speed;
+    if (f.y > H+40) { fishes.splice(i,1); continue; }
+    if (!f.collected && rectsOverlap(p.x-18,p.y-32,36,60, f.x-12,f.y-8,24,16,4)) {
+      f.collected=true;
+      score+=10;
+      spawnParticles(f.x,f.y,'#ffd700',8);
+      fishes.splice(i,1);
+      updateHUD();
     }
   }
 
-  // score from survival
-  if (frame % 10 === 0) { score++; updateUI(); }
+  // survival score
+  if (frame%8===0) { score++; updateHUD(); }
 
   // particles
-  for (let i = particles.length - 1; i >= 0; i--) {
-    const pt = particles[i];
-    pt.x += pt.vx;
-    pt.y += pt.vy;
-    pt.vy += 0.15;
-    pt.life -= 0.04;
-    if (pt.life <= 0) particles.splice(i, 1);
+  for (let i=particles.length-1;i>=0;i--) {
+    const pt=particles[i];
+    pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.2; pt.life-=0.04;
+    if (pt.life<=0) particles.splice(i,1);
   }
 }
 
+// ── draw ─────────────────────────────────────────────────
 function draw() {
-  ctx.clearRect(0, 0, W, H);
-  drawBackground();
+  ctx.clearRect(0,0,W,H);
+  drawBg();
   for (const o of obstacles) {
-    if (o.type === 'berg') drawIceberg(o);
-    else if (o.type === 'ball') drawSnowball(o);
-    else drawBird(o);
+    if (o.type==='octo') drawOcto(o);
+    else drawRock(o);
   }
   for (const f of fishes) drawFish(f);
   drawPenguin(penguin);
   drawParticles();
-  drawHUD();
+  drawDistanceBar();
 }
 
-function gameOver() {
-  state = 'dead';
-  if (score > best) best = score;
-  updateUI();
-
-  const ov = document.getElementById('overlay');
-  ov.innerHTML = `
-    <h1 id="gameOverTitle">💀 게임 오버</h1>
-    <div id="finalScore">점수: <strong>${score}</strong> &nbsp;|&nbsp; 최고: <strong>${best}</strong></div>
-    <button id="startBtn" onclick="startGame()">다시 시작</button>
-    <div class="hint">스페이스 / 클릭 / 탭으로도 재시작</div>
-  `;
-  ov.style.display = 'flex';
+// ── idle loop ─────────────────────────────────────────────
+function idleDraw() {
+  frame++;
+  ctx.clearRect(0,0,W,H);
+  drawBg();
+  drawPenguin(penguin);
 }
 
+// ── main loop ─────────────────────────────────────────────
 function loop() {
-  if (state === 'playing') {
-    update();
-    draw();
-  } else if (state === 'idle') {
-    // idle animation
-    frame++;
-    bgOffset += 2;
-    ctx.clearRect(0, 0, W, H);
-    drawBackground();
-    // idle penguin
-    penguin = penguin || { x: 100, y: GROUND, w: 44, h: 52, vy: 0, onGround: true, jumps: 0, invincible: 0 };
-    drawPenguin(penguin);
-  }
+  if (state==='playing') { update(); draw(); }
+  else idleDraw();
   requestAnimationFrame(loop);
 }
 
-// init idle state
-initGame();
-state = 'idle';
-loop();
+initGame(); state='idle'; loop();
 </script>
 </body>
 </html>
