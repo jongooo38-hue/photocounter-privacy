@@ -157,6 +157,61 @@ let penguin, obstacles, fishes, particles, cloudObjs, tileOffset;
 let touchStartX = null, touchStartY = null;
 let nextObstacle, nextFish, comboFish, lastLane;
 
+// ── 효과음 (Web Audio API) ────────────────────────────────
+let audioCtx = null;
+
+function getAudio() {
+  if (!audioCtx) audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+  return audioCtx;
+}
+
+function playTone(freq, type, duration, vol, freqEnd) {
+  try {
+    const ac = getAudio();
+    const osc = ac.createOscillator();
+    const gain = ac.createGain();
+    osc.connect(gain); gain.connect(ac.destination);
+    osc.type = type;
+    osc.frequency.setValueAtTime(freq, ac.currentTime);
+    if (freqEnd) osc.frequency.exponentialRampToValueAtTime(freqEnd, ac.currentTime + duration);
+    gain.gain.setValueAtTime(vol, ac.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ac.currentTime + duration);
+    osc.start(ac.currentTime);
+    osc.stop(ac.currentTime + duration);
+  } catch(e) {}
+}
+
+function sfxFish() {
+  // 통통 튀는 동전 소리
+  playTone(880, 'sine', 0.08, 0.3, 1400);
+  setTimeout(() => playTone(1200, 'sine', 0.1, 0.2, 1800), 60);
+}
+
+function sfxHit() {
+  // 쿵 + 으르렁
+  playTone(180, 'sawtooth', 0.15, 0.4, 80);
+  playTone(80, 'square', 0.2, 0.3);
+}
+
+function sfxLane() {
+  // 슉 소리
+  playTone(400, 'sine', 0.07, 0.15, 200);
+}
+
+function sfxGameOver() {
+  // 내려가는 음계
+  [440, 370, 310, 220].forEach((f, i) => {
+    setTimeout(() => playTone(f, 'triangle', 0.2, 0.3), i * 120);
+  });
+}
+
+function sfxStart() {
+  // 올라가는 팡파레
+  [330, 440, 550, 660].forEach((f, i) => {
+    setTimeout(() => playTone(f, 'sine', 0.15, 0.25), i * 80);
+  });
+}
+
 // ── 자이로스코프 ───────────────────────────────────────────
 let gyroEnabled = false;
 let gyroGamma   = 0;      // 좌우 기울기 (-90 ~ +90)
@@ -224,16 +279,17 @@ function updateHUD() {
 function startGame() {
   document.getElementById('overlay').style.display='none';
   initGame(); state='playing';
+  sfxStart();
 }
 
 // ── controls ──────────────────────────────────────────────
 function moveLeft()  {
   if (state!=='playing') return;
-  if (penguin.lane>0) { penguin.lane--; penguin.targetX=LANES[penguin.lane]; }
+  if (penguin.lane>0) { penguin.lane--; penguin.targetX=LANES[penguin.lane]; sfxLane(); }
 }
 function moveRight() {
   if (state!=='playing') return;
-  if (penguin.lane<2) { penguin.lane++; penguin.targetX=LANES[penguin.lane]; }
+  if (penguin.lane<2) { penguin.lane++; penguin.targetX=LANES[penguin.lane]; sfxLane(); }
 }
 function doJump() {
   if (state==='idle'||state==='dead') { startGame(); return; }
@@ -743,6 +799,7 @@ function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh, m) {
 function gameOver() {
   state='dead';
   if (score>best) best=score;
+  sfxGameOver();
   updateHUD();
   const ov=document.getElementById('overlay');
   ov.innerHTML=`
@@ -799,9 +856,10 @@ function update() {
     if (p.invincible===0 &&
         rectsOverlap(p.x-18,p.y-44,36,70, o.x-24,o.y-26,52,54)) {
       lives--;
-      p.invincible=120; // 2초 무적 (60fps 기준)
+      p.invincible=120;
       spawnParticles(p.x,p.y,'#ff6b6b',16);
       spawnParticles(o.x,o.y,'#dd55cc',10);
+      sfxHit();
       updateHUD();
       if (lives<=0) { gameOver(); return; }
     }
@@ -819,6 +877,7 @@ function update() {
       spawnParticles(f.x,f.y,'#ffd700',10);
       spawnParticles(f.x,f.y,'#fffaaa',6);
       addScorePopup(f.x, f.y-20, '+10 🐟');
+      sfxFish();
       fishes.splice(i,1);
       updateHUD();
     }
