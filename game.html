@@ -5,15 +5,15 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
 <title>슈퍼펭귄</title>
 <style>
-* { margin: 0; padding: 0; box-sizing: border-box; }
+* { margin:0; padding:0; box-sizing:border-box; }
 body {
-  background: #0a1628;
+  background: #5bc8f5;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   min-height: 100vh;
-  font-family: 'Segoe UI', 'Malgun Gothic', sans-serif;
+  font-family: 'Segoe UI', 'Malgun Gothic', Arial, sans-serif;
   overflow: hidden;
   user-select: none;
   touch-action: none;
@@ -27,90 +27,108 @@ canvas {
   display: block;
   width: 360px;
   height: 640px;
-  border-radius: 20px;
-  box-shadow: 0 0 60px rgba(100,200,255,0.35);
+  border-radius: 24px;
+  box-shadow: 0 8px 40px rgba(0,80,160,0.35);
 }
 #hud {
   position: absolute;
   top: 0; left: 0; right: 0;
-  padding: 14px 18px;
+  padding: 14px 16px 0;
   pointer-events: none;
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
+  align-items: center;
 }
 #scoreBox {
-  background: rgba(0,0,0,0.45);
-  border-radius: 12px;
-  padding: 6px 14px;
-  color: #fff;
-  font-size: 20px;
-  font-weight: 700;
+  background: rgba(255,255,255,0.88);
+  border-radius: 20px;
+  padding: 6px 16px;
+  color: #1155cc;
+  font-size: 22px;
+  font-weight: 900;
+  box-shadow: 0 2px 8px rgba(0,0,80,0.15);
 }
 #livesBox {
-  background: rgba(0,0,0,0.45);
-  border-radius: 12px;
-  padding: 6px 10px;
+  background: rgba(255,255,255,0.88);
+  border-radius: 20px;
+  padding: 6px 12px;
   font-size: 20px;
   letter-spacing: 3px;
+  box-shadow: 0 2px 8px rgba(0,0,80,0.15);
 }
 #overlay {
   position: absolute;
   inset: 0;
-  border-radius: 20px;
-  background: rgba(5,15,35,0.82);
+  border-radius: 24px;
+  background: linear-gradient(160deg, rgba(20,80,200,0.92) 0%, rgba(10,40,120,0.95) 100%);
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 10px;
 }
-#overlay h1 { font-size: 40px; color: #fff; text-shadow: 0 0 24px #5ce; }
-.sub  { color: #adf; font-size: 15px; }
-.hint { color: #6af; font-size: 13px; margin-top: 4px; text-align: center; line-height: 1.6; }
+.ov-title {
+  font-size: 44px;
+  color: #fff;
+  font-weight: 900;
+  text-shadow: 0 4px 16px rgba(0,0,0,0.4), 0 0 30px #ffe;
+  letter-spacing: -1px;
+}
+.ov-sub { color: #afe; font-size: 16px; font-weight: 600; }
+.ov-hint {
+  color: #9cf;
+  font-size: 14px;
+  text-align: center;
+  line-height: 1.8;
+  background: rgba(0,0,0,0.2);
+  border-radius: 12px;
+  padding: 8px 18px;
+}
 #startBtn {
-  margin-top: 10px;
-  padding: 14px 44px;
-  font-size: 20px;
-  font-weight: 700;
-  background: linear-gradient(135deg,#1e90ff,#0055cc);
+  margin-top: 8px;
+  padding: 16px 48px;
+  font-size: 22px;
+  font-weight: 900;
+  background: linear-gradient(135deg,#ffcc00,#ff8800);
   color: #fff;
   border: none;
   border-radius: 50px;
   cursor: pointer;
-  box-shadow: 0 4px 24px rgba(30,144,255,.55);
-  transition: transform .1s;
+  box-shadow: 0 6px 0 #c05000, 0 8px 20px rgba(255,100,0,.4);
+  transition: transform .1s, box-shadow .1s;
+  text-shadow: 0 2px 4px rgba(0,0,0,0.3);
 }
-#startBtn:active { transform: scale(.95); }
-#bestBox { color: #7fc; font-size: 15px; }
-/* swipe controls overlay */
-#ctrlLeft, #ctrlRight {
-  position: absolute;
-  top: 0; bottom: 0;
-  width: 50%;
-  opacity: 0;
-  pointer-events: all;
+#startBtn:active {
+  transform: translateY(4px);
+  box-shadow: 0 2px 0 #c05000, 0 4px 10px rgba(255,100,0,.3);
 }
-#ctrlLeft  { left: 0; }
-#ctrlRight { right: 0; }
+.ov-score-big {
+  font-size: 52px;
+  font-weight: 900;
+  color: #ffd700;
+  text-shadow: 0 0 20px rgba(255,200,0,0.6);
+}
+.ov-best { color: #aef; font-size: 16px; font-weight: 600; }
 </style>
 </head>
 <body>
 <div id="wrap">
   <canvas id="c" width="360" height="640"></canvas>
   <div id="hud">
-    <div id="scoreBox">0</div>
-    <div id="livesBox">🐧🐧🐧</div>
+    <div id="scoreBox">🐟 0</div>
+    <div id="livesBox">❤️❤️❤️❤️❤️</div>
   </div>
   <div id="overlay">
-    <h1>🐧 슈퍼펭귄</h1>
-    <div class="sub">광고 없는 깨끗한 게임</div>
-    <div id="bestBox">최고기록: 0</div>
-    <div class="hint">← → / 스와이프 : 레인 이동<br>스페이스 / 탭 : 점프</div>
-    <button id="startBtn" onclick="startGame()">게임 시작</button>
+    <div class="ov-title">🐧 슈퍼펭귄!</div>
+    <div class="ov-sub">광고 없는 깨끗한 게임 ✨</div>
+    <div id="bestLine" class="ov-best"></div>
+    <div class="ov-hint">
+      ← → 화살표 / 화면 좌우 누르기<br>
+      레인을 바꿔 문어를 피하세요!<br>
+      🐟 물고기를 모아요!
+    </div>
+    <button id="startBtn" onclick="startGame()">▶ 시작!</button>
   </div>
-  <div id="ctrlLeft"  onclick="moveLeft()"></div>
-  <div id="ctrlRight" onclick="moveRight()"></div>
 </div>
 
 <script>
@@ -118,366 +136,562 @@ const canvas = document.getElementById('c');
 const ctx    = canvas.getContext('2d');
 const W = 360, H = 640;
 
-// ── constants ─────────────────────────────────────────────
-const LANES    = [80, 180, 280];        // x centres of 3 lanes
-const LANE_W   = 80;
-const PENG_Y   = H - 110;
-const GROUND_Y = H - 60;
-const GRAVITY  = 0.7;
-const JUMP_V   = -15;
+const LANES   = [70, 180, 290];
+const LANE_W  = 100;
+const PENG_Y  = H - 120;
+const FLOOR_Y = H - 55;
 
-// ── state ─────────────────────────────────────────────────
+// ── 아이용 난이도 설정 ─────────────────────────────────────
+const INIT_SPEED    = 2.5;   // 매우 느리게 시작
+const MAX_SPEED     = 5.5;   // 최고 속도도 낮게
+const SPEED_UP_INT  = 600;   // 600프레임마다 속도 증가 (매우 천천히)
+const SPEED_UP_AMT  = 0.25;  // 증가폭도 작게
+const MIN_OBSTACLE_GAP = 140; // 장애물 간격 넓게
+const INIT_OBSTACLE_GAP = 200;
+const HITBOX_MARGIN = 16;    // 판정 매우 관대하게
+const INIT_LIVES    = 5;     // 목숨 5개
+
 let state = 'idle';
 let score, best = 0, lives, frame, speed;
-let penguin, obstacles, fishes, particles, tileOffset;
-let bgStars;
-let touchStartX = null;
+let penguin, obstacles, fishes, particles, cloudObjs, tileOffset;
+let touchStartX = null, touchStartY = null;
+let nextObstacle, nextFish, comboFish, lastLane;
+
+// ── 배경 요소 ─────────────────────────────────────────────
+function makeClouds() {
+  return [
+    {x:60,  y:80,  s:1.1, spd:0.4},
+    {x:230, y:50,  s:0.8, spd:0.3},
+    {x:310, y:110, s:0.9, spd:0.5},
+    {x:130, y:160, s:0.7, spd:0.35},
+  ];
+}
 
 // ── init ──────────────────────────────────────────────────
 function initGame() {
-  score = 0; lives = 3; frame = 0; speed = 4; tileOffset = 0;
+  score=0; lives=INIT_LIVES; frame=0; speed=INIT_SPEED;
+  tileOffset=0; nextObstacle=INIT_OBSTACLE_GAP; nextFish=100;
+  comboFish=0; lastLane=-1;
   penguin = {
-    lane: 1, x: LANES[1], y: PENG_Y,
-    vy: 0, onGround: true, jumps: 0,
-    targetX: LANES[1], moving: false,
-    invincible: 0, dead: false
+    lane:1, x:LANES[1], targetX:LANES[1], y:PENG_Y,
+    vy:0, onGround:true, jumps:0,
+    invincible:0, frameCount:0
   };
-  obstacles = []; fishes = []; particles = [];
-  bgStars = Array.from({length:30}, () => ({
-    x: Math.random()*W, y: Math.random()*H,
-    r: Math.random()*1.5+0.5,
-    twinkle: Math.random()*Math.PI*2
-  }));
+  obstacles=[]; fishes=[]; particles=[];
+  cloudObjs = makeClouds();
   updateHUD();
 }
 
 function updateHUD() {
-  document.getElementById('scoreBox').textContent = score;
-  const icons = Array(3).fill('🐧');
-  for (let i = lives; i < 3; i++) icons[i] = '🩶';
+  document.getElementById('scoreBox').textContent = '🐟 ' + score;
+  const icons = Array(5).fill('❤️');
+  for (let i=lives;i<5;i++) icons[i]='🩶';
   document.getElementById('livesBox').textContent = icons.join('');
-  document.getElementById('bestBox').textContent = '최고기록: ' + best;
+  const bestEl = document.getElementById('bestLine');
+  if (bestEl) bestEl.textContent = best>0 ? '🏆 최고: '+best+'점' : '';
 }
 
 function startGame() {
-  document.getElementById('overlay').style.display = 'none';
-  initGame();
-  state = 'playing';
+  document.getElementById('overlay').style.display='none';
+  initGame(); state='playing';
 }
 
 // ── controls ──────────────────────────────────────────────
-function moveLeft()  { if (state!=='playing') return; if (penguin.lane>0) { penguin.lane--; penguin.targetX=LANES[penguin.lane]; } }
-function moveRight() { if (state!=='playing') return; if (penguin.lane<2) { penguin.lane++; penguin.targetX=LANES[penguin.lane]; } }
-function doJump()    {
+function moveLeft()  {
+  if (state!=='playing') return;
+  if (penguin.lane>0) { penguin.lane--; penguin.targetX=LANES[penguin.lane]; }
+}
+function moveRight() {
+  if (state!=='playing') return;
+  if (penguin.lane<2) { penguin.lane++; penguin.targetX=LANES[penguin.lane]; }
+}
+function doJump() {
   if (state==='idle'||state==='dead') { startGame(); return; }
-  if (penguin.jumps < 2) {
-    penguin.vy = penguin.jumps===0 ? JUMP_V : JUMP_V*0.8;
-    penguin.onGround = false;
-    penguin.jumps++;
-    spawnParticles(penguin.x, penguin.y+30, '#aef', 6);
-  }
+  // 이 게임은 점프 없음 (레인변경만) — 아이가 단순하게 플레이
 }
 
-document.addEventListener('keydown', e => {
+document.addEventListener('keydown', e=>{
   if (e.code==='ArrowLeft'  || e.key==='a') { e.preventDefault(); moveLeft(); }
   if (e.code==='ArrowRight' || e.key==='d') { e.preventDefault(); moveRight(); }
-  if (e.code==='Space' || e.code==='ArrowUp') { e.preventDefault(); doJump(); }
+  if (e.code==='Space') { e.preventDefault(); doJump(); }
 });
 
-// touch swipe
-canvas.addEventListener('touchstart', e => {
+canvas.addEventListener('touchstart', e=>{
   e.preventDefault();
-  touchStartX = e.touches[0].clientX;
-}, {passive:false});
-canvas.addEventListener('touchend', e => {
+  touchStartX=e.touches[0].clientX;
+  touchStartY=e.touches[0].clientY;
+},{passive:false});
+
+canvas.addEventListener('touchend', e=>{
   e.preventDefault();
-  if (touchStartX === null) return;
-  const dx = e.changedTouches[0].clientX - touchStartX;
-  if (Math.abs(dx) < 20) { doJump(); }
-  else if (dx < 0) moveLeft();
-  else moveRight();
-  touchStartX = null;
-}, {passive:false});
+  if (touchStartX===null) return;
+  const dx=e.changedTouches[0].clientX-touchStartX;
+  if (Math.abs(dx)<25) {
+    // tap: left half = move left, right half = move right
+    const tx = e.changedTouches[0].clientX;
+    const rect = canvas.getBoundingClientRect();
+    const relX = (tx - rect.left) / rect.width * W;
+    if (relX < W/2) moveLeft(); else moveRight();
+  } else {
+    if (dx<0) moveLeft(); else moveRight();
+  }
+  touchStartX=null;
+},{passive:false});
+
+canvas.addEventListener('click', e=>{
+  if (state!=='playing') { startGame(); return; }
+  const rect=canvas.getBoundingClientRect();
+  const relX=(e.clientX-rect.left)/rect.width*W;
+  if (relX<W/2) moveLeft(); else moveRight();
+});
 
 // ── spawn ─────────────────────────────────────────────────
-let nextObstacle = 80, nextFish = 120;
-
-function spawnRow() {
-  // pick 1–2 blocked lanes
-  const count = Math.random()<0.4 ? 2 : 1;
-  const lanesCopy = [0,1,2].sort(()=>Math.random()-0.5);
-  const blocked = lanesCopy.slice(0, count);
-  for (const l of blocked) {
-    const type = Math.random()<0.6 ? 'octo' : 'rock';
-    obstacles.push({ lane:l, x:LANES[l], y:-60, w:50, h:50, type, angle:0 });
+function spawnObstacle() {
+  // 반드시 1개 레인은 비워서 아이가 피할 수 있게
+  const openLane = Math.floor(Math.random()*3);
+  for (let l=0;l<3;l++) {
+    if (l===openLane) continue;
+    // 50% 확률로 장애물 추가 (최대 2개지만 보통 1~2개)
+    if (l!==openLane && Math.random()<0.5) {
+      const type = Math.random()<0.7?'octo':'rock';
+      obstacles.push({lane:l, x:LANES[l], y:-80, w:60, h:60, type, bob:Math.random()*Math.PI*2});
+    }
+  }
+  // 최소 1개는 반드시 생성
+  if (obstacles.length===0 || obstacles[obstacles.length-1].y > -70) {
+    const bl = [0,1,2].filter(x=>x!==openLane);
+    const chosen = bl[Math.floor(Math.random()*bl.length)];
+    obstacles.push({lane:chosen, x:LANES[chosen], y:-80, w:60, h:60, type:'octo', bob:0});
   }
 }
 
-function spawnFishRow() {
-  const l = Math.floor(Math.random()*3);
-  for (let i=0; i<3; i++) {
-    fishes.push({ lane:l, x:LANES[l], y:-40 - i*36, w:24, h:16, bob:Math.random()*Math.PI*2, collected:false });
+function spawnFish() {
+  // 물고기 3개 한 줄
+  const l=Math.floor(Math.random()*3);
+  for (let i=0;i<3;i++) {
+    fishes.push({lane:l, x:LANES[l], y:-50-i*44, w:30, h:20, bob:i*1.2, collected:false});
   }
 }
 
 function spawnParticles(x,y,color,n) {
   for (let i=0;i<n;i++) {
-    particles.push({x,y,vx:(Math.random()-0.5)*5,vy:-Math.random()*5-1,life:1,color});
+    particles.push({x,y,
+      vx:(Math.random()-0.5)*6, vy:-Math.random()*7-2,
+      life:1, color, size:4+Math.random()*4
+    });
   }
 }
 
-// ── collision ─────────────────────────────────────────────
-function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh, m=10) {
-  return ax+m < bx+bw-m && ax+aw-m > bx+m &&
-         ay+m < by+bh-m && ay+ah-m > by+m;
-}
-
-// ── draw helpers ──────────────────────────────────────────
+// ── draw background ───────────────────────────────────────
 function drawBg() {
-  // ice track background
-  const grad = ctx.createLinearGradient(0,0,0,H);
-  grad.addColorStop(0,'#061428');
-  grad.addColorStop(1,'#0d2a50');
-  ctx.fillStyle = grad;
+  // 하늘 그라디언트 (밝은 파란색)
+  const sky=ctx.createLinearGradient(0,0,0,H);
+  sky.addColorStop(0,'#87ceeb');
+  sky.addColorStop(0.6,'#b8e4f9');
+  sky.addColorStop(1,'#e0f4ff');
+  ctx.fillStyle=sky;
   ctx.fillRect(0,0,W,H);
 
-  // stars
-  for (const s of bgStars) {
-    s.twinkle += 0.03;
-    ctx.globalAlpha = 0.4 + Math.sin(s.twinkle)*0.3;
-    ctx.fillStyle = '#fff';
-    ctx.beginPath();
-    ctx.arc(s.x, s.y, s.r, 0, Math.PI*2);
-    ctx.fill();
-  }
-  ctx.globalAlpha = 1;
-
-  // aurora
-  ctx.save();
-  ctx.globalAlpha = 0.08 + Math.sin(frame*0.01)*0.03;
-  const ag = ctx.createLinearGradient(0,80,W,80);
-  ag.addColorStop(0,'#00ffcc'); ag.addColorStop(0.5,'#aa44ff'); ag.addColorStop(1,'#00ffcc');
-  ctx.fillStyle = ag;
-  ctx.fillRect(0,60,W,80);
-  ctx.restore();
-
-  // 3 lanes (ice path)
-  for (let l=0;l<3;l++) {
-    const lx = LANES[l]-LANE_W/2;
-    ctx.fillStyle = l===1 ? 'rgba(100,160,255,0.08)' : 'rgba(80,130,220,0.05)';
-    ctx.fillRect(lx, 0, LANE_W, H);
-    // lane line
-    if (l<2) {
-      ctx.save();
-      ctx.globalAlpha = 0.2;
-      ctx.strokeStyle = '#5af';
-      ctx.setLineDash([18,22]);
-      ctx.lineDashOffset = -tileOffset*0.8;
-      ctx.lineWidth = 2;
-      ctx.beginPath();
-      ctx.moveTo(LANES[l]+LANE_W/2, 0);
-      ctx.lineTo(LANES[l]+LANE_W/2, H);
-      ctx.stroke();
-      ctx.restore();
-    }
+  // 구름
+  for (const cl of cloudObjs) {
+    cl.x -= cl.spd;
+    if (cl.x < -120) cl.x = W+60;
+    drawCloud(cl.x, cl.y, cl.s);
   }
 
-  // ground
-  ctx.fillStyle = '#1a4a8a';
-  ctx.fillRect(0, GROUND_Y, W, H-GROUND_Y);
+  // 원거리 산/빙하
+  drawIceMountains();
+
+  // 바닥 (얼음)
+  const iceGrad=ctx.createLinearGradient(0,FLOOR_Y,0,H);
+  iceGrad.addColorStop(0,'#c8ecff');
+  iceGrad.addColorStop(0.3,'#a0d8f0');
+  iceGrad.addColorStop(1,'#70b8e0');
+  ctx.fillStyle=iceGrad;
+  ctx.fillRect(0,FLOOR_Y,W,H-FLOOR_Y);
+
+  // 바닥 반짝임
   ctx.save();
-  ctx.globalAlpha = 0.4;
-  ctx.strokeStyle = '#4af';
-  ctx.lineWidth = 2;
-  ctx.beginPath(); ctx.moveTo(0,GROUND_Y); ctx.lineTo(W,GROUND_Y); ctx.stroke();
-  ctx.restore();
-}
-
-function drawPenguin(p) {
-  ctx.save();
-  if (p.invincible>0 && Math.floor(frame/4)%2===0) ctx.globalAlpha = 0.35;
-
-  const cx = p.x, cy = p.y;
-  const bobX = p.onGround ? Math.sin(frame*0.25)*2 : 0;
-
-  // shadow
-  ctx.save();
-  ctx.globalAlpha = 0.18;
-  ctx.fillStyle='#000';
-  ctx.beginPath();
-  ctx.ellipse(cx+bobX, GROUND_Y+4, 18, 5, 0, 0, Math.PI*2);
-  ctx.fill();
-  ctx.restore();
-
-  // body
-  ctx.fillStyle='#1a1a2e';
-  ctx.beginPath();
-  ctx.ellipse(cx+bobX, cy, 16, 22, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // belly
-  ctx.fillStyle='#e8f4f8';
-  ctx.beginPath();
-  ctx.ellipse(cx+bobX, cy+3, 9, 14, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // head
-  ctx.fillStyle='#1a1a2e';
-  ctx.beginPath();
-  ctx.arc(cx+bobX, cy-24, 13, 0, Math.PI*2);
-  ctx.fill();
-
-  // eye
+  ctx.globalAlpha=0.35;
   ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(cx+bobX+6, cy-26, 4.5, 0, Math.PI*2); ctx.fill();
-  ctx.fillStyle='#111';
-  ctx.beginPath(); ctx.arc(cx+bobX+8, cy-25, 2.5, 0, Math.PI*2); ctx.fill();
-
-  // beak
-  ctx.fillStyle='#f4a300';
-  ctx.beginPath();
-  ctx.moveTo(cx+bobX+12, cy-22);
-  ctx.lineTo(cx+bobX+20, cy-20);
-  ctx.lineTo(cx+bobX+12, cy-18);
-  ctx.closePath(); ctx.fill();
-
-  // wings flap
-  const wa = p.onGround ? Math.sin(frame*0.2)*0.5 : -0.8;
-  ctx.fillStyle='#111f3a';
-  ctx.save(); ctx.translate(cx+bobX-13,cy-5); ctx.rotate(wa);
-  ctx.fillRect(-4,-5,8,20); ctx.restore();
-  ctx.save(); ctx.translate(cx+bobX+13,cy-5); ctx.rotate(-wa);
-  ctx.fillRect(-4,-5,8,20); ctx.restore();
-
-  // feet
-  ctx.fillStyle='#f4a300';
-  const fOff = p.onGround ? Math.sin(frame*0.25)*4 : 0;
-  ctx.fillRect(cx+bobX-14, cy+20+fOff, 10,5);
-  ctx.fillRect(cx+bobX+4,  cy+20-fOff, 10,5);
-
-  // helmet (decoration)
-  ctx.fillStyle='#1e90ff';
-  ctx.beginPath();
-  ctx.arc(cx+bobX, cy-24, 13, Math.PI, 0);
-  ctx.fill();
-  // star on helmet
-  ctx.fillStyle='#ffd700';
-  drawStar(cx+bobX, cy-30, 5, 3, 4);
-
-  ctx.restore();
-}
-
-function drawStar(cx,cy,outerR,innerR,points) {
-  ctx.beginPath();
-  for (let i=0;i<points*2;i++) {
-    const r = i%2===0?outerR:innerR;
-    const a = (i*Math.PI/points)-Math.PI/2;
-    i===0?ctx.moveTo(cx+r*Math.cos(a),cy+r*Math.sin(a)):ctx.lineTo(cx+r*Math.cos(a),cy+r*Math.sin(a));
+  const shineX = (-(tileOffset*0.6))%90;
+  for (let x=shineX;x<W;x+=90) {
+    ctx.fillRect(x, FLOOR_Y+2, 50, 4);
   }
-  ctx.closePath(); ctx.fill();
-}
+  ctx.restore();
 
-function drawOcto(o) {
-  const cy = o.y;
-  const cx = o.x;
-  const bob = Math.sin(frame*0.12 + o.lane)*3;
-
-  // tentacles
-  ctx.fillStyle='#c0392b';
-  for (let i=0;i<6;i++) {
-    const tx = cx + (i-2.5)*8;
-    const ty = cy+18+bob;
+  // 레인 구분선
+  for (let l=0;l<2;l++) {
+    const lx = LANES[l]+LANE_W/2;
+    ctx.save();
+    ctx.globalAlpha=0.3;
+    ctx.strokeStyle='#5599cc';
+    ctx.lineWidth=2;
+    ctx.setLineDash([20,20]);
+    ctx.lineDashOffset = -tileOffset;
     ctx.beginPath();
-    ctx.ellipse(tx, ty+12, 5, 10, (i-2.5)*0.15, 0, Math.PI*2);
-    ctx.fill();
-  }
-
-  // body
-  const bg = ctx.createRadialGradient(cx,cy+bob,2,cx,cy+bob,24);
-  bg.addColorStop(0,'#e74c3c'); bg.addColorStop(1,'#922b21');
-  ctx.fillStyle=bg;
-  ctx.beginPath();
-  ctx.ellipse(cx, cy+bob, 22, 20, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // head dome
-  ctx.fillStyle='#c0392b';
-  ctx.beginPath();
-  ctx.ellipse(cx, cy-10+bob, 18, 14, 0, 0, Math.PI*2);
-  ctx.fill();
-
-  // eyes (angry)
-  ctx.fillStyle='#fff';
-  ctx.beginPath(); ctx.arc(cx-8,cy-8+bob,5,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx+8,cy-8+bob,5,0,Math.PI*2); ctx.fill();
-  ctx.fillStyle='#111';
-  ctx.beginPath(); ctx.arc(cx-7,cy-7+bob,3,0,Math.PI*2); ctx.fill();
-  ctx.beginPath(); ctx.arc(cx+9,cy-7+bob,3,0,Math.PI*2); ctx.fill();
-  // angry brow
-  ctx.strokeStyle='#7b241c'; ctx.lineWidth=2.5;
-  ctx.beginPath(); ctx.moveTo(cx-13,cy-14+bob); ctx.lineTo(cx-3,cy-11+bob); ctx.stroke();
-  ctx.beginPath(); ctx.moveTo(cx+13,cy-14+bob); ctx.lineTo(cx+3,cy-11+bob); ctx.stroke();
-}
-
-function drawRock(o) {
-  ctx.save();
-  ctx.fillStyle='#4a7fa5';
-  ctx.beginPath();
-  ctx.moveTo(o.x, o.y-24);
-  ctx.lineTo(o.x-22, o.y+18);
-  ctx.lineTo(o.x+22, o.y+18);
-  ctx.closePath(); ctx.fill();
-  ctx.fillStyle='rgba(255,255,255,0.25)';
-  ctx.beginPath();
-  ctx.moveTo(o.x, o.y-24);
-  ctx.lineTo(o.x+10, o.y);
-  ctx.lineTo(o.x-5, o.y+5);
-  ctx.closePath(); ctx.fill();
-  ctx.restore();
-}
-
-function drawFish(f) {
-  if (f.collected) return;
-  const by = Math.sin(frame*0.1+f.bob)*3;
-  ctx.save();
-  ctx.translate(f.x, f.y+by);
-  // tail
-  ctx.fillStyle='#ffd700';
-  ctx.beginPath();
-  ctx.moveTo(-f.w/2-4,0); ctx.lineTo(-f.w/2+2,-6); ctx.lineTo(-f.w/2+2,6);
-  ctx.closePath(); ctx.fill();
-  // body
-  ctx.beginPath();
-  ctx.ellipse(2,0,f.w/2,f.h/2,0,0,Math.PI*2);
-  ctx.fill();
-  // shine
-  ctx.fillStyle='rgba(255,255,255,0.5)';
-  ctx.beginPath(); ctx.ellipse(4,-3,3,2,-0.3,0,Math.PI*2); ctx.fill();
-  // eye
-  ctx.fillStyle='#222';
-  ctx.beginPath(); ctx.arc(f.w/2-2,-1,2,0,Math.PI*2); ctx.fill();
-  ctx.restore();
-}
-
-function drawParticles() {
-  for (const p of particles) {
-    ctx.save(); ctx.globalAlpha=p.life;
-    ctx.fillStyle=p.color;
-    ctx.fillRect(p.x-3,p.y-3,6,6);
+    ctx.moveTo(lx,0); ctx.lineTo(lx,FLOOR_Y);
+    ctx.stroke();
     ctx.restore();
   }
 }
 
-function drawDistanceBar() {
-  // top progress indicator
-  const pct = Math.min(score/2000, 1);
+function drawCloud(x,y,s) {
   ctx.save();
-  ctx.globalAlpha=0.6;
-  ctx.fillStyle='#223';
-  ctx.fillRect(10,8,W-20,4);
-  ctx.fillStyle='#4af';
-  ctx.fillRect(10,8,(W-20)*pct,4);
+  ctx.fillStyle='rgba(255,255,255,0.92)';
+  ctx.shadowColor='rgba(100,180,255,0.3)';
+  ctx.shadowBlur=8;
+  ctx.beginPath();
+  ctx.arc(x,       y,   24*s, 0,Math.PI*2);
+  ctx.arc(x+22*s,  y-8*s, 18*s, 0,Math.PI*2);
+  ctx.arc(x+44*s,  y,   22*s, 0,Math.PI*2);
+  ctx.arc(x+22*s,  y+8*s,16*s, 0,Math.PI*2);
+  ctx.fill();
   ctx.restore();
+}
+
+function drawIceMountains() {
+  ctx.save();
+  ctx.globalAlpha=0.55;
+  // 뒷 산
+  ctx.fillStyle='#c8e8f8';
+  ctx.beginPath();
+  ctx.moveTo(0, FLOOR_Y-10);
+  ctx.lineTo(60,FLOOR_Y-80);  ctx.lineTo(140,FLOOR_Y-20);
+  ctx.lineTo(180,FLOOR_Y-100); ctx.lineTo(250,FLOOR_Y-30);
+  ctx.lineTo(300,FLOOR_Y-90); ctx.lineTo(360,FLOOR_Y-15);
+  ctx.lineTo(360,FLOOR_Y); ctx.lineTo(0,FLOOR_Y);
+  ctx.closePath(); ctx.fill();
+  // 눈 덮인 봉우리
+  ctx.globalAlpha=0.8;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.moveTo(55,FLOOR_Y-65); ctx.lineTo(60,FLOOR_Y-80); ctx.lineTo(72,FLOOR_Y-58);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(172,FLOOR_Y-85); ctx.lineTo(180,FLOOR_Y-100); ctx.lineTo(192,FLOOR_Y-78);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(292,FLOOR_Y-75); ctx.lineTo(300,FLOOR_Y-90); ctx.lineTo(312,FLOOR_Y-68);
+  ctx.closePath(); ctx.fill();
+  ctx.restore();
+}
+
+// ── 펭귄 그리기 (슈퍼펭귄 스타일: 흰색+선글라스+황금볏) ──────
+function drawPenguin(p) {
+  ctx.save();
+  if (p.invincible>0 && Math.floor(frame/5)%2===0) ctx.globalAlpha=0.35;
+
+  const cx=p.x, cy=p.y;
+  const run = p.onGround ? Math.sin(frame*0.22)*3 : 0;
+  const runY = p.onGround ? Math.abs(Math.sin(frame*0.22))*2 : 0;
+
+  // 그림자
+  ctx.save();
+  ctx.globalAlpha=0.18;
+  ctx.fillStyle='#0055aa';
+  ctx.beginPath();
+  ctx.ellipse(cx, FLOOR_Y+4, 22, 6, 0,0,Math.PI*2);
+  ctx.fill();
+  ctx.restore();
+
+  // 몸통 (흰색)
+  ctx.fillStyle='#f0f8ff';
+  ctx.strokeStyle='#c0d8ee';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.ellipse(cx, cy+runY, 22, 28, 0,0,Math.PI*2);
+  ctx.fill(); ctx.stroke();
+
+  // 배 (크림색)
+  ctx.fillStyle='#fffde8';
+  ctx.beginPath();
+  ctx.ellipse(cx, cy+6+runY, 13, 18, 0,0,Math.PI*2);
+  ctx.fill();
+
+  // 날개
+  const wAngle = p.onGround ? Math.sin(frame*0.22)*0.6 : -1.0;
+  ctx.fillStyle='#b0c8e0';
+  ctx.strokeStyle='#90aac0';
+  ctx.lineWidth=1;
+  ctx.save();
+  ctx.translate(cx-18, cy+runY);
+  ctx.rotate(wAngle);
+  ctx.beginPath();
+  ctx.ellipse(0,8,7,18,0.2,0,Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+  ctx.save();
+  ctx.translate(cx+18, cy+runY);
+  ctx.rotate(-wAngle);
+  ctx.beginPath();
+  ctx.ellipse(0,8,7,18,-0.2,0,Math.PI*2);
+  ctx.fill(); ctx.stroke();
+  ctx.restore();
+
+  // 머리 (흰색)
+  ctx.fillStyle='#f0f8ff';
+  ctx.strokeStyle='#c0d8ee';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.arc(cx, cy-26+runY, 18, 0,Math.PI*2);
+  ctx.fill(); ctx.stroke();
+
+  // 황금 볏 (모히칸)
+  ctx.fillStyle='#ffd700';
+  ctx.strokeStyle='#e6a000';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.moveTo(cx-4, cy-38+runY);
+  ctx.bezierCurveTo(cx-6,cy-52+runY, cx-2,cy-56+runY, cx,  cy-54+runY);
+  ctx.bezierCurveTo(cx+2,cy-56+runY, cx+6,cy-52+runY, cx+4,cy-38+runY);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // 볏 작은 삐침들
+  ctx.beginPath();
+  ctx.moveTo(cx-8,cy-40+runY); ctx.lineTo(cx-10,cy-50+runY); ctx.lineTo(cx-5,cy-40+runY);
+  ctx.closePath(); ctx.fill();
+  ctx.beginPath();
+  ctx.moveTo(cx+8,cy-40+runY); ctx.lineTo(cx+10,cy-50+runY); ctx.lineTo(cx+5,cy-40+runY);
+  ctx.closePath(); ctx.fill();
+
+  // 눈 (흰자)
+  ctx.fillStyle='#fff';
+  ctx.strokeStyle='#aac';
+  ctx.lineWidth=1;
+  ctx.beginPath();
+  ctx.arc(cx-7, cy-28+runY, 6,0,Math.PI*2); ctx.fill(); ctx.stroke();
+  ctx.beginPath();
+  ctx.arc(cx+7, cy-28+runY, 6,0,Math.PI*2); ctx.fill(); ctx.stroke();
+
+  // 선글라스 (쿨한 검정)
+  ctx.fillStyle='#111';
+  ctx.beginPath();
+  ctx.ellipse(cx-7, cy-28+runY, 7,5,0,0,Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx+7, cy-28+runY, 7,5,0,0,Math.PI*2); ctx.fill();
+  // 선글라스 테두리
+  ctx.strokeStyle='#555'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.ellipse(cx-7, cy-28+runY, 7,5,0,0,Math.PI*2); ctx.stroke();
+  ctx.beginPath();
+  ctx.ellipse(cx+7, cy-28+runY, 7,5,0,0,Math.PI*2); ctx.stroke();
+  // 코받침
+  ctx.beginPath(); ctx.moveTo(cx-1,cy-28+runY); ctx.lineTo(cx+1,cy-28+runY); ctx.stroke();
+  // 선글라스 반짝임
+  ctx.fillStyle='rgba(255,255,255,0.35)';
+  ctx.beginPath();
+  ctx.ellipse(cx-9,cy-30+runY,2.5,1.5,-0.3,0,Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx+5,cy-30+runY,2.5,1.5,-0.3,0,Math.PI*2); ctx.fill();
+
+  // 부리
+  ctx.fillStyle='#f4a300';
+  ctx.beginPath();
+  ctx.moveTo(cx-4, cy-22+runY);
+  ctx.lineTo(cx,   cy-18+runY);
+  ctx.lineTo(cx+4, cy-22+runY);
+  ctx.closePath(); ctx.fill();
+
+  // 발 (주황)
+  ctx.fillStyle='#f4a300';
+  const fStride = run*0.8;
+  ctx.beginPath();
+  ctx.ellipse(cx-8+fStride, cy+28+runY, 8,5,0.2,0,Math.PI*2); ctx.fill();
+  ctx.beginPath();
+  ctx.ellipse(cx+8-fStride, cy+28+runY, 8,5,-0.2,0,Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+// ── 문어 그리기 (보라색 귀엽게) ──────────────────────────
+function drawOcto(o) {
+  const bob = Math.sin(frame*0.08 + o.bob)*5;
+  const cx=o.x, cy=o.y+bob;
+
+  // 촉수 (6개, 둥글게)
+  const colors=['#9b59b6','#8e44ad','#7d3c98','#a569bd','#884ea0','#76448a'];
+  for (let i=0;i<6;i++) {
+    const tx = cx + (i-2.5)*11;
+    ctx.fillStyle=colors[i%colors.length];
+    ctx.beginPath();
+    ctx.moveTo(tx-5,cy+14);
+    ctx.quadraticCurveTo(tx+3,cy+32, tx, cy+40);
+    ctx.quadraticCurveTo(tx-3,cy+32,tx+5,cy+14);
+    ctx.closePath(); ctx.fill();
+    // 빨판
+    ctx.fillStyle='rgba(255,200,255,0.6)';
+    ctx.beginPath(); ctx.arc(tx,cy+28,3,0,Math.PI*2); ctx.fill();
+  }
+
+  // 몸통
+  const bodyG=ctx.createRadialGradient(cx-5,cy-5,2,cx,cy,26);
+  bodyG.addColorStop(0,'#d98aff');
+  bodyG.addColorStop(0.5,'#9b59b6');
+  bodyG.addColorStop(1,'#7a1fa2');
+  ctx.fillStyle=bodyG;
+  ctx.beginPath();
+  ctx.arc(cx,cy,26,0,Math.PI*2); ctx.fill();
+
+  // 하이라이트
+  ctx.save();
+  ctx.globalAlpha=0.3;
+  ctx.fillStyle='#fff';
+  ctx.beginPath();
+  ctx.ellipse(cx-7,cy-12,9,6,-0.3,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // 눈 (화난 표정)
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(cx-9,cy-4,7,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+9,cy-4,7,0,Math.PI*2); ctx.fill();
+  // 눈동자
+  ctx.fillStyle='#222';
+  ctx.beginPath(); ctx.arc(cx-8,cy-3,4,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+10,cy-3,4,0,Math.PI*2); ctx.fill();
+  // 빛망울
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(cx-7,cy-5,1.5,0,Math.PI*2); ctx.fill();
+  ctx.beginPath(); ctx.arc(cx+11,cy-5,1.5,0,Math.PI*2); ctx.fill();
+  // 눈썹 (화남)
+  ctx.strokeStyle='#4a0066'; ctx.lineWidth=2.5; ctx.lineCap='round';
+  ctx.beginPath(); ctx.moveTo(cx-16,cy-12); ctx.lineTo(cx-3,cy-8);  ctx.stroke();
+  ctx.beginPath(); ctx.moveTo(cx+16,cy-12); ctx.lineTo(cx+3,cy-8);  ctx.stroke();
+  // 입 (화남)
+  ctx.strokeStyle='#4a0066'; ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.arc(cx,cy+10,6,0.3,Math.PI-0.3); ctx.stroke();
+}
+
+// ── 빙하 장애물 ───────────────────────────────────────────
+function drawRock(o) {
+  const cx=o.x, cy=o.y;
+  ctx.fillStyle='#a0d4f0';
+  ctx.strokeStyle='#7ab8d8';
+  ctx.lineWidth=2;
+  ctx.beginPath();
+  ctx.moveTo(cx-24,cy+24);
+  ctx.lineTo(cx-10,cy-28);
+  ctx.lineTo(cx+10,cy-22);
+  ctx.lineTo(cx+26,cy+24);
+  ctx.closePath(); ctx.fill(); ctx.stroke();
+  // 눈 하이라이트
+  ctx.fillStyle='rgba(255,255,255,0.6)';
+  ctx.beginPath();
+  ctx.moveTo(cx-10,cy-28); ctx.lineTo(cx+10,cy-22);
+  ctx.lineTo(cx+4,cy-8);  ctx.lineTo(cx-6,cy-10);
+  ctx.closePath(); ctx.fill();
+}
+
+// ── 물고기 ────────────────────────────────────────────────
+function drawFish(f) {
+  if (f.collected) return;
+  const bob=Math.sin(frame*0.1+f.bob)*4;
+  ctx.save();
+  ctx.translate(f.x, f.y+bob);
+
+  // 빛나는 효과
+  ctx.save();
+  ctx.globalAlpha=0.2+Math.sin(frame*0.15+f.bob)*0.1;
+  ctx.fillStyle='#ffe';
+  ctx.beginPath();
+  ctx.arc(0,0,20,0,Math.PI*2); ctx.fill();
+  ctx.restore();
+
+  // 꼬리
+  ctx.fillStyle='#ff9900';
+  ctx.beginPath();
+  ctx.moveTo(-f.w/2-6,0);
+  ctx.lineTo(-f.w/2+2,-9); ctx.lineTo(-f.w/2+2,9);
+  ctx.closePath(); ctx.fill();
+
+  // 몸통
+  ctx.fillStyle='#ffc200';
+  ctx.strokeStyle='#e6a000';
+  ctx.lineWidth=1.5;
+  ctx.beginPath();
+  ctx.ellipse(2,0,f.w/2,f.h/2,0,0,Math.PI*2);
+  ctx.fill(); ctx.stroke();
+
+  // 비늘 반짝임
+  ctx.fillStyle='rgba(255,255,255,0.55)';
+  ctx.beginPath(); ctx.ellipse(4,-4,5,3,-0.4,0,Math.PI*2); ctx.fill();
+
+  // 눈
+  ctx.fillStyle='#111';
+  ctx.beginPath(); ctx.arc(f.w/2-3,-1,3,0,Math.PI*2); ctx.fill();
+  ctx.fillStyle='#fff';
+  ctx.beginPath(); ctx.arc(f.w/2-2,-2,1.2,0,Math.PI*2); ctx.fill();
+
+  ctx.restore();
+}
+
+// ── 파티클 ────────────────────────────────────────────────
+function drawParticles() {
+  for (const p of particles) {
+    ctx.save();
+    ctx.globalAlpha=p.life*0.9;
+    ctx.fillStyle=p.color;
+    ctx.beginPath();
+    ctx.arc(p.x,p.y,p.size/2,0,Math.PI*2);
+    ctx.fill();
+    ctx.restore();
+  }
+}
+
+// ── 상단 진행바 ───────────────────────────────────────────
+function drawProgressBar() {
+  const pct = Math.min((speed-INIT_SPEED)/(MAX_SPEED-INIT_SPEED), 1);
+  ctx.save();
+  ctx.globalAlpha=0.5;
+  ctx.fillStyle='rgba(0,0,0,0.2)';
+  roundRect(ctx, 12, 10, W-24, 6, 3); ctx.fill();
+  const barGrad=ctx.createLinearGradient(12,0,W-12,0);
+  barGrad.addColorStop(0,'#44ff88');
+  barGrad.addColorStop(0.5,'#ffcc00');
+  barGrad.addColorStop(1,'#ff4444');
+  ctx.fillStyle=barGrad;
+  roundRect(ctx, 12, 10, (W-24)*pct, 6, 3); ctx.fill();
+  ctx.restore();
+}
+
+function roundRect(ctx,x,y,w,h,r) {
+  ctx.beginPath();
+  ctx.moveTo(x+r,y);
+  ctx.lineTo(x+w-r,y); ctx.arcTo(x+w,y,x+w,y+r,r);
+  ctx.lineTo(x+w,y+h-r); ctx.arcTo(x+w,y+h,x+w-r,y+h,r);
+  ctx.lineTo(x+r,y+h); ctx.arcTo(x,y+h,x,y+h-r,r);
+  ctx.lineTo(x,y+r); ctx.arcTo(x,y,x+r,y,r);
+  ctx.closePath();
+}
+
+// ── 콤보 텍스트 ───────────────────────────────────────────
+let scorePopups = [];
+function addScorePopup(x,y,text) {
+  scorePopups.push({x,y,text,life:1});
+}
+function drawScorePopups() {
+  for (let i=scorePopups.length-1;i>=0;i--) {
+    const sp=scorePopups[i];
+    ctx.save();
+    ctx.globalAlpha=sp.life;
+    ctx.font='900 20px Arial';
+    ctx.fillStyle='#ffd700';
+    ctx.strokeStyle='#aa6600';
+    ctx.lineWidth=3;
+    ctx.textAlign='center';
+    ctx.strokeText(sp.text, sp.x, sp.y);
+    ctx.fillText(sp.text, sp.x, sp.y);
+    ctx.restore();
+    sp.y-=1.5; sp.life-=0.025;
+    if (sp.life<=0) scorePopups.splice(i,1);
+  }
+}
+
+// ── 충돌 ──────────────────────────────────────────────────
+function rectsOverlap(ax,ay,aw,ah, bx,by,bw,bh, m) {
+  m=m||HITBOX_MARGIN;
+  return ax+m<bx+bw-m && ax+aw-m>bx+m &&
+         ay+m<by+bh-m && ay+ah-m>by+m;
 }
 
 // ── game over ─────────────────────────────────────────────
@@ -487,11 +701,11 @@ function gameOver() {
   updateHUD();
   const ov=document.getElementById('overlay');
   ov.innerHTML=`
-    <h1 style="color:#ff6b6b;text-shadow:0 0 20px #f44">💀 게임 오버</h1>
-    <div style="color:#fff;font-size:22px;font-weight:700;">점수: ${score}</div>
-    <div id="bestBox" style="color:#7fc;font-size:16px;">최고기록: ${best}</div>
-    <button id="startBtn" onclick="startGame()">다시 시작</button>
-    <div class="hint">← → : 레인이동 &nbsp;|&nbsp; 스페이스/탭 : 점프</div>
+    <div class="ov-title" style="color:#ff8800;">😢 게임 오버!</div>
+    <div class="ov-score-big">${score}점</div>
+    <div class="ov-best">${score>0&&score===best?'🎉 최고기록 달성!':'🏆 최고: '+best+'점'}</div>
+    <button id="startBtn" onclick="startGame()">▶ 다시 하기!</button>
+    <div class="ov-hint">화면을 눌러도 돼요! 😊</div>
   `;
   ov.style.display='flex';
 }
@@ -499,74 +713,71 @@ function gameOver() {
 // ── update ────────────────────────────────────────────────
 function update() {
   frame++;
-  tileOffset += speed;
-  if (frame%240===0) speed = Math.min(speed+0.4, 14);
+  tileOffset+=speed;
 
-  const p = penguin;
+  if (frame%SPEED_UP_INT===0) speed=Math.min(speed+SPEED_UP_AMT, MAX_SPEED);
 
-  // smooth lane movement
-  const dx = p.targetX - p.x;
-  p.x += dx * 0.2;
+  const p=penguin;
+  // 레인 이동 (부드럽게)
+  p.x += (p.targetX-p.x)*0.18;
 
-  // jump physics
-  p.vy += GRAVITY;
-  p.y += p.vy;
-  if (p.y >= PENG_Y) {
-    p.y = PENG_Y; p.vy = 0; p.onGround=true; p.jumps=0;
-  } else {
-    p.onGround=false;
-  }
   if (p.invincible>0) p.invincible--;
 
-  // spawn obstacles
+  // 장애물 스폰
   nextObstacle--;
   if (nextObstacle<=0) {
-    spawnRow();
-    nextObstacle = Math.max(45, 100 - score*0.04)|0;
+    spawnObstacle();
+    nextObstacle = Math.max(MIN_OBSTACLE_GAP, INIT_OBSTACLE_GAP - score*0.015)|0;
   }
-  nextFish--;
-  if (nextFish<=0) { spawnFishRow(); nextFish=90; }
 
-  // move obstacles
+  nextFish--;
+  if (nextFish<=0) { spawnFishRow(); nextFish=Math.max(80,120-score*0.01)|0; }
+
+  // 장애물 이동 & 충돌
   for (let i=obstacles.length-1;i>=0;i--) {
     const o=obstacles[i];
-    o.y += speed;
-    if (o.y > H+80) { obstacles.splice(i,1); continue; }
-    if (p.invincible===0 && rectsOverlap(p.x-18,p.y-32,36,60, o.x-20,o.y-24,44,46)) {
+    o.y+=speed;
+    if (o.y>H+80) { obstacles.splice(i,1); continue; }
+    if (p.invincible===0 &&
+        rectsOverlap(p.x-18,p.y-44,36,70, o.x-24,o.y-26,52,54)) {
       lives--;
-      p.invincible=90;
-      spawnParticles(p.x,p.y,'#ff6b6b',14);
+      p.invincible=120; // 2초 무적 (60fps 기준)
+      spawnParticles(p.x,p.y,'#ff6b6b',16);
+      spawnParticles(o.x,o.y,'#dd55cc',10);
       updateHUD();
       if (lives<=0) { gameOver(); return; }
     }
   }
 
-  // move fishes
+  // 물고기 이동 & 수집
   for (let i=fishes.length-1;i>=0;i--) {
     const f=fishes[i];
-    f.y += speed;
-    if (f.y > H+40) { fishes.splice(i,1); continue; }
-    if (!f.collected && rectsOverlap(p.x-18,p.y-32,36,60, f.x-12,f.y-8,24,16,4)) {
+    f.y+=speed;
+    if (f.y>H+40) { fishes.splice(i,1); continue; }
+    if (!f.collected &&
+        rectsOverlap(p.x-22,p.y-48,44,80, f.x-15,f.y-10,30,20, 4)) {
       f.collected=true;
       score+=10;
-      spawnParticles(f.x,f.y,'#ffd700',8);
+      spawnParticles(f.x,f.y,'#ffd700',10);
+      spawnParticles(f.x,f.y,'#fffaaa',6);
+      addScorePopup(f.x, f.y-20, '+10 🐟');
       fishes.splice(i,1);
       updateHUD();
     }
   }
 
-  // survival score
-  if (frame%8===0) { score++; updateHUD(); }
+  // 생존 점수 (느리게)
+  if (frame%12===0) { score++; updateHUD(); }
 
-  // particles
+  // 파티클
   for (let i=particles.length-1;i>=0;i--) {
     const pt=particles[i];
-    pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.2; pt.life-=0.04;
+    pt.x+=pt.vx; pt.y+=pt.vy; pt.vy+=0.25; pt.life-=0.03;
     if (pt.life<=0) particles.splice(i,1);
   }
 }
 
-// ── draw ─────────────────────────────────────────────────
+// ── draw ──────────────────────────────────────────────────
 function draw() {
   ctx.clearRect(0,0,W,H);
   drawBg();
@@ -577,18 +788,20 @@ function draw() {
   for (const f of fishes) drawFish(f);
   drawPenguin(penguin);
   drawParticles();
-  drawDistanceBar();
+  drawScorePopups();
+  drawProgressBar();
 }
 
-// ── idle loop ─────────────────────────────────────────────
+// ── idle ──────────────────────────────────────────────────
 function idleDraw() {
   frame++;
+  tileOffset+=1.5;
   ctx.clearRect(0,0,W,H);
   drawBg();
   drawPenguin(penguin);
 }
 
-// ── main loop ─────────────────────────────────────────────
+// ── loop ──────────────────────────────────────────────────
 function loop() {
   if (state==='playing') { update(); draw(); }
   else idleDraw();
