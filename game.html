@@ -125,21 +125,81 @@ function sfxMilestone() {
   setTimeout(()=>playTone(1047,'sine',.4,.35),300);
 }
 
-// 배경음악 (펜타토닉 루프)
-const BG_MELODY = [523,659,784,880,784,659,523,392, 440,523,659,784,659,523,440,330];
-const BG_BASS   = [131,131,165,165,131,131,110,110, 131,131,165,165,131,131,110,110];
+// 배경음악 — 경쾌한 마리오풍 루프
+// 32스텝, 150ms/스텝 = ~100 BPM 8분음표
+const BG_MELODY = [
+  784,0,1047,784, 880,0,1047,880,
+  988,0, 880,784, 659,0, 784,659,
+  698,0, 880,698, 784,0,1047,784,
+  880,659, 784,0, 523,659, 784,0
+];
+const BG_BASS = [
+  131,0,131,0, 196,0,196,0,
+  165,0,165,0, 196,0,196,0,
+  175,0,175,0, 131,0,131,0,
+  196,0,165,0, 131,0,131,0
+];
+// K=킥 S=스네어 H=하이햇 -=쉬기
+const BG_DRUM = [
+  'K','-','H','-', 'S','-','H','-',
+  'K','-','H','-', 'S','-','H','-',
+  'K','-','H','-', 'S','-','H','-',
+  'K','H','K','H', 'S','-','H','-'
+];
+
+function sfxKick() {
+  try {
+    const a=ac(), o=a.createOscillator(), g=a.createGain();
+    o.connect(g); g.connect(a.destination);
+    o.frequency.setValueAtTime(150,a.currentTime);
+    o.frequency.exponentialRampToValueAtTime(40,a.currentTime+0.12);
+    g.gain.setValueAtTime(0.55,a.currentTime);
+    g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.18);
+    o.start(); o.stop(a.currentTime+0.18);
+  } catch(e){}
+}
+function sfxSnare() {
+  try {
+    const a=ac(), buf=a.createBuffer(1,a.sampleRate*.12,a.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length)*.8;
+    const src=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain();
+    f.type='bandpass'; f.frequency.value=1800; f.Q.value=0.8;
+    src.buffer=buf; src.connect(f); f.connect(g); g.connect(a.destination);
+    g.gain.setValueAtTime(0.22,a.currentTime);
+    src.start();
+  } catch(e){}
+}
+function sfxHihat() {
+  try {
+    const a=ac(), buf=a.createBuffer(1,a.sampleRate*.025,a.sampleRate);
+    const d=buf.getChannelData(0);
+    for(let i=0;i<d.length;i++) d[i]=(Math.random()*2-1)*(1-i/d.length);
+    const src=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain();
+    f.type='highpass'; f.frequency.value=8000;
+    src.buffer=buf; src.connect(f); f.connect(g); g.connect(a.destination);
+    g.gain.setValueAtTime(0.1,a.currentTime);
+    src.start();
+  } catch(e){}
+}
+
 let bgBeat=0, bgTimer=null;
 function startBgMusic() {
   if (bgTimer) return;
   bgBeat=0;
   bgTimer = setInterval(()=>{
     if (state!=='playing') return;
-    const f=BG_MELODY[bgBeat%BG_MELODY.length];
-    const b=BG_BASS[bgBeat%BG_BASS.length];
-    playTone(f,'sine',.22,.04);
-    if (bgBeat%2===0) playTone(b,'triangle',.4,.035);
+    const step = bgBeat % BG_MELODY.length;
+    const f = BG_MELODY[step];
+    const b = BG_BASS[step];
+    const dr = BG_DRUM[step];
+    if (f) playTone(f,'square',.09,.045);
+    if (b) playTone(b,'triangle',.18,.04);
+    if (dr==='K') sfxKick();
+    else if (dr==='S') sfxSnare();
+    else if (dr==='H') sfxHihat();
     bgBeat++;
-  }, 280);
+  }, 150);
 }
 function stopBgMusic() { clearInterval(bgTimer); bgTimer=null; }
 
