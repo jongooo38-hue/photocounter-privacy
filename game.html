@@ -38,6 +38,38 @@ canvas { display:block; width:360px; height:640px; border-radius:24px; box-shado
   padding:6px 12px; font-size:13px; font-weight:700; color:#1155cc;
   cursor:pointer; display:none; box-shadow:0 2px 6px rgba(0,0,80,.15);
 }
+#settingsBtn {
+  position:absolute; top:10px; right:10px;
+  background:rgba(255,255,255,.82); border:none; border-radius:50%;
+  width:40px; height:40px; font-size:20px;
+  cursor:pointer; box-shadow:0 2px 8px rgba(0,0,80,.18);
+  display:flex; align-items:center; justify-content:center;
+  z-index:10; pointer-events:all;
+}
+#settingsPanel {
+  position:absolute; inset:0; border-radius:24px; z-index:20;
+  background:rgba(10,30,90,.93);
+  display:none; flex-direction:column; align-items:center; justify-content:center; gap:20px;
+  padding:30px 28px;
+}
+#settingsPanel h2 { color:#fff; font-size:22px; font-weight:900; margin-bottom:4px; }
+.srow { width:100%; display:flex; flex-direction:column; gap:6px; }
+.srow label { color:#aef; font-size:14px; font-weight:700; display:flex; justify-content:space-between; }
+.srow input[type=range] {
+  width:100%; accent-color:#ffcc00; height:6px; cursor:pointer;
+}
+.diff-row { display:flex; gap:12px; width:100%; }
+.diff-btn {
+  flex:1; padding:12px 0; border:2px solid #446; border-radius:14px;
+  background:rgba(255,255,255,.1); color:#aef; font-size:15px; font-weight:700;
+  cursor:pointer; transition:background .15s,border-color .15s;
+}
+.diff-btn.active { background:rgba(255,200,0,.25); border-color:#ffcc00; color:#ffe; }
+#settingsClose {
+  margin-top:4px; padding:12px 36px; font-size:18px; font-weight:900;
+  background:linear-gradient(135deg,#ffcc00,#ff8800); color:#fff; border:none;
+  border-radius:50px; cursor:pointer; box-shadow:0 4px 0 #c05000;
+}
 #overlay {
   position:absolute; inset:0; border-radius:24px;
   background:linear-gradient(160deg,rgba(20,80,200,.92),rgba(10,40,120,.95));
@@ -65,7 +97,34 @@ canvas { display:block; width:360px; height:640px; border-radius:24px; box-shado
     <div id="scoreBox">🐟 0</div>
     <div id="livesBox">❤️❤️❤️❤️❤️</div>
   </div>
+  <button id="settingsBtn" onclick="openSettings()">⚙️</button>
   <button id="calibBtn" onclick="calibrateGyro()">📐 중앙보정</button>
+  <div id="settingsPanel">
+    <h2>⚙️ 설정</h2>
+    <div class="srow">
+      <label>📱 자이로 민감도 <span id="gyroValLabel">5</span></label>
+      <input type="range" id="gyroSlider" min="1" max="10" value="5"
+             oninput="updateGyroSens(this.value)">
+    </div>
+    <div class="srow">
+      <label>🎵 배경음 볼륨 <span id="bgmValLabel">70</span>%</label>
+      <input type="range" id="bgmSlider" min="0" max="100" value="70"
+             oninput="updateBgmVol(this.value)">
+    </div>
+    <div class="srow">
+      <label>🔊 효과음 볼륨 <span id="sfxValLabel">80</span>%</label>
+      <input type="range" id="sfxSlider" min="0" max="100" value="80"
+             oninput="updateSfxVol(this.value)">
+    </div>
+    <div class="srow">
+      <label>🎮 난이도</label>
+      <div class="diff-row">
+        <button class="diff-btn active" id="diffEasy" onclick="setDiff('easy')">🐣 쉬움</button>
+        <button class="diff-btn" id="diffNormal" onclick="setDiff('normal')">🐧 보통</button>
+      </div>
+    </div>
+    <button id="settingsClose" onclick="closeSettings()">✅ 확인</button>
+  </div>
   <div id="overlay">
     <div class="ov-title">🐧 슈퍼펭귄!</div>
     <div class="ov-sub">광고 없는 깨끗한 게임 ✨</div>
@@ -114,15 +173,16 @@ function playTone(freq, type, dur, vol, freqEnd) {
   } catch(e){}
 }
 
-// 효과음
-function sfxFish()  { playTone(880,'sine',.08,.25,1400); setTimeout(()=>playTone(1200,'sine',.1,.15,1800),60); }
-function sfxHit()   { playTone(180,'sawtooth',.15,.35,80); playTone(80,'square',.2,.25); }
-function sfxLane()  { playTone(380,'sine',.07,.1,200); }
-function sfxStart() { [330,440,550,660].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',.15,.2),i*80)); }
-function sfxGameOver() { [440,370,310,220].forEach((f,i)=>setTimeout(()=>playTone(f,'triangle',.22,.25),i*130)); }
+// 효과음 (sfxVol 적용)
+function sv() { return settings.sfxVol; }
+function sfxFish()  { playTone(880,'sine',.08,.25*sv(),1400); setTimeout(()=>playTone(1200,'sine',.1,.15*sv(),1800),60); }
+function sfxHit()   { playTone(180,'sawtooth',.15,.35*sv(),80); playTone(80,'square',.2,.25*sv()); }
+function sfxLane()  { playTone(380,'sine',.07,.1*sv(),200); }
+function sfxStart() { [330,440,550,660].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',.15,.2*sv()),i*80)); }
+function sfxGameOver() { [440,370,310,220].forEach((f,i)=>setTimeout(()=>playTone(f,'triangle',.22,.25*sv()),i*130)); }
 function sfxMilestone() {
-  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',.2,.3),i*70));
-  setTimeout(()=>playTone(1047,'sine',.4,.35),300);
+  [523,659,784,1047].forEach((f,i)=>setTimeout(()=>playTone(f,'sine',.2,.3*sv()),i*70));
+  setTimeout(()=>playTone(1047,'sine',.4,.35*sv()),300);
 }
 
 // 배경음악 — 경쾌한 마리오풍 루프
@@ -147,18 +207,18 @@ const BG_DRUM = [
   'K','H','K','H', 'S','-','H','-'
 ];
 
-function sfxKick() {
+function sfxKick(v=1) {
   try {
     const a=ac(), o=a.createOscillator(), g=a.createGain();
     o.connect(g); g.connect(a.destination);
     o.frequency.setValueAtTime(150,a.currentTime);
     o.frequency.exponentialRampToValueAtTime(40,a.currentTime+0.12);
-    g.gain.setValueAtTime(0.55,a.currentTime);
+    g.gain.setValueAtTime(0.55*v,a.currentTime);
     g.gain.exponentialRampToValueAtTime(0.001,a.currentTime+0.18);
     o.start(); o.stop(a.currentTime+0.18);
   } catch(e){}
 }
-function sfxSnare() {
+function sfxSnare(v=1) {
   try {
     const a=ac(), buf=a.createBuffer(1,a.sampleRate*.12,a.sampleRate);
     const d=buf.getChannelData(0);
@@ -166,11 +226,11 @@ function sfxSnare() {
     const src=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain();
     f.type='bandpass'; f.frequency.value=1800; f.Q.value=0.8;
     src.buffer=buf; src.connect(f); f.connect(g); g.connect(a.destination);
-    g.gain.setValueAtTime(0.22,a.currentTime);
+    g.gain.setValueAtTime(0.22*v,a.currentTime);
     src.start();
   } catch(e){}
 }
-function sfxHihat() {
+function sfxHihat(v=1) {
   try {
     const a=ac(), buf=a.createBuffer(1,a.sampleRate*.025,a.sampleRate);
     const d=buf.getChannelData(0);
@@ -178,7 +238,7 @@ function sfxHihat() {
     const src=a.createBufferSource(), f=a.createBiquadFilter(), g=a.createGain();
     f.type='highpass'; f.frequency.value=8000;
     src.buffer=buf; src.connect(f); f.connect(g); g.connect(a.destination);
-    g.gain.setValueAtTime(0.1,a.currentTime);
+    g.gain.setValueAtTime(0.1*v,a.currentTime);
     src.start();
   } catch(e){}
 }
@@ -193,20 +253,58 @@ function startBgMusic() {
     const f = BG_MELODY[step];
     const b = BG_BASS[step];
     const dr = BG_DRUM[step];
-    if (f) playTone(f,'square',.09,.045);
-    if (b) playTone(b,'triangle',.18,.04);
-    if (dr==='K') sfxKick();
-    else if (dr==='S') sfxSnare();
-    else if (dr==='H') sfxHihat();
+    const bv=settings.bgmVol;
+    if (f) playTone(f,'square',.09,bv*.065);
+    if (b) playTone(b,'triangle',.18,bv*.055);
+    if (dr==='K') sfxKick(bv);
+    else if (dr==='S') sfxSnare(bv);
+    else if (dr==='H') sfxHihat(bv);
     bgBeat++;
   }, 150);
 }
 function stopBgMusic() { clearInterval(bgTimer); bgTimer=null; }
 
+// ── 설정 ──────────────────────────────────────────────────
+let settings = {
+  gyroSens: 5,   // 1~10 (높을수록 예민)
+  bgmVol: 0.70,
+  sfxVol: 0.80,
+  difficulty: 'easy'
+};
+// 민감도 → 최대각도 변환: sens 1=60°, 10=15°
+function gyroMaxFromSens(s) { return 60 - (s-1)*5; }
+
+function updateGyroSens(v) {
+  settings.gyroSens = +v;
+  document.getElementById('gyroValLabel').textContent = v;
+}
+function updateBgmVol(v) {
+  settings.bgmVol = +v/100;
+  document.getElementById('bgmValLabel').textContent = v;
+}
+function updateSfxVol(v) {
+  settings.sfxVol = +v/100;
+  document.getElementById('sfxValLabel').textContent = v;
+}
+function setDiff(d) {
+  settings.difficulty = d;
+  document.getElementById('diffEasy').classList.toggle('active', d==='easy');
+  document.getElementById('diffNormal').classList.toggle('active', d==='normal');
+}
+function openSettings() {
+  const sp = document.getElementById('settingsPanel');
+  sp.style.display = 'flex';
+  // 게임 중이면 일시정지 효과
+  if (state==='playing') state='paused';
+}
+function closeSettings() {
+  document.getElementById('settingsPanel').style.display = 'none';
+  if (state==='paused') state='playing';
+}
+
 // ── 자이로 ────────────────────────────────────────────────
 let gyroEnabled=false, gyroGamma=0, gyroBaseline=0;
-const GYRO_DEAD = 15;  // 데드존 (이 각도 이내 → 중앙 복귀)
-const GYRO_MAX  = 45;  // 최대 반응 각도 (더 크게 기울여야 끝에 닿음)
+const GYRO_DEAD = 12;  // 데드존
 
 function setupGyro() {
   if (!window.DeviceOrientationEvent) return;
@@ -247,7 +345,9 @@ function makeClouds() {
 }
 
 function initGame() {
-  score=0; lives=INIT_LIVES; frame=0; speed=INIT_SPEED;
+  const easy = settings.difficulty==='easy';
+  const initSpd = easy ? 1.8 : INIT_SPEED;
+  score=0; lives=easy?6:INIT_LIVES; frame=0; speed=initSpd;
   tileOffset=0; nextObstacle=INIT_OBS_GAP; nextFish=100;
   lastMilestone=0; milestoneFlash=0; scorePopups=[];
   penguin={x:W/2, targetX:W/2, y:PENG_Y, invincible:0};
@@ -551,8 +651,9 @@ function drawGyroBar(){
   ctx.save(); ctx.globalAlpha=.45;
   ctx.fillStyle='rgba(0,0,0,.2)';
   roundRect(ctx,bx,by,bw,bh,4); ctx.fill();
-  const cg=Math.max(-GYRO_MAX,Math.min(GYRO_MAX,gyroGamma));
-  const px=bx+bw/2+(cg/GYRO_MAX)*(bw/2-8);
+  const _gm=gyroMaxFromSens(settings.gyroSens);
+  const cg=Math.max(-_gm,Math.min(_gm,gyroGamma));
+  const px=bx+bw/2+(cg/_gm)*(bw/2-8);
   ctx.fillStyle='#ffd700';
   ctx.beginPath(); ctx.arc(px,by+bh/2,8,0,Math.PI*2); ctx.fill();
   ctx.restore();
@@ -601,15 +702,14 @@ function update(){
 
   // 이동 결정 (우선순위: 자이로 > 터치드래그 > 키보드)
   if(gyroEnabled){
-    const raw=gyroGamma-gyroBaseline;          // 캘리브레이션 적용
-    const g=Math.max(-GYRO_MAX,Math.min(GYRO_MAX,raw));
+    const gm=gyroMaxFromSens(settings.gyroSens);
+    const raw=gyroGamma-gyroBaseline;
+    const g=Math.max(-gm,Math.min(gm,raw));
     if(Math.abs(g)<GYRO_DEAD){
-      // 데드존: 중앙으로 천천히 복귀
       p.targetX+=(W/2-p.targetX)*0.05;
     } else {
-      // 데드존 밖: 선형 매핑
       const sign=g>0?1:-1;
-      const t=(Math.abs(g)-GYRO_DEAD)/(GYRO_MAX-GYRO_DEAD);
+      const t=(Math.abs(g)-GYRO_DEAD)/(gm-GYRO_DEAD);
       p.targetX=W/2+sign*t*((MAX_X-MIN_X)/2);
     }
   } else if(touchActive){
