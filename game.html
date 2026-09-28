@@ -207,17 +207,12 @@ function buildRoadSeg(idx){
   var road=new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HW*2+0.2,SEG_LEN+0.1),idx%2===0?matRoad0:matRoad1);
   road.rotation.x=-Math.PI/2;road.receiveShadow=true;
   g.add(road);g._road=road;g._roadIdx=idx;
-  // Snow mounds: flat base + dome bumps
+  // Snow banks: smooth continuous strip, no individual bumps
   var snowObjs=[];
   [-1,1].forEach(function(s){
-    var bx=s*(ROAD_HW+0.55);
-    var base=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.16,SEG_LEN+0.08),matSnowBank);
-    base.position.set(bx,0.08,0);base.receiveShadow=true;g.add(base);snowObjs.push(base);
-    for(var bi=0;bi<3;bi++){
-      var bmp=new THREE.Mesh(new THREE.SphereGeometry(0.28,10,7),matSnowBank);
-      bmp.scale.set(1,0.65,0.9);
-      bmp.position.set(bx,0.22,-0.75+bi*0.75);bmp.castShadow=true;g.add(bmp);snowObjs.push(bmp);
-    }
+    var bx=s*(ROAD_HW+0.6);
+    var base=new THREE.Mesh(new THREE.BoxGeometry(1.2,0.22,SEG_LEN+0.12),matSnowBank);
+    base.position.set(bx,0.11,0);base.receiveShadow=true;g.add(base);snowObjs.push(base);
   });
   g._banks=snowObjs;
   return{group:g,z3D:0,isGap:false,idx:idx};
@@ -242,12 +237,12 @@ function makeSideIceberg(){
   cap.position.y=h;g.add(cap);
   return g;
 }
-for(var _j=0;_j<14;_j++){
+for(var _j=0;_j<8;_j++){
   var ib=makeSideIceberg();
   var _ibSide=(_j%2===0?-1:1);
-  ib.position.x=_ibSide*(ROAD_HW+2+Math.random()*4);
-  ib.position.z=-_j*4.5-5;
-  ib._side=_ibSide;ib._baseOffX=ROAD_HW+2+Math.random()*4;
+  ib.position.x=_ibSide*(ROAD_HW+3+Math.random()*3);
+  ib.position.z=-_j*8-8;
+  ib._side=_ibSide;ib._baseOffX=ROAD_HW+3+Math.random()*3;
   scene.add(ib);
   sideIcebergs.push(ib);
 }
@@ -753,7 +748,7 @@ function update(){
     var x1=pathHist[Math.min(slot+1,maxS)];
     var segX=x0+(x1-x0)*frac;
     var segA=pathAngHist[Math.min(slot,maxS)];
-    seg.group.position.set(segX,0,seg.z3D);
+    seg.group.position.set(segX,0.001,seg.z3D);
     seg.group.rotation.y=0;
     // Gap check
     var segGameZ=worldZ+depth/WZ_SCALE;
@@ -764,11 +759,11 @@ function update(){
 
   // Side icebergs scroll for parallax, follow road curve slightly
   sideIcebergs.forEach(function(ib){
-    ib.position.z+=dz*0.4;
-    ib.position.x=rcX*0.35+ib._side*ib._baseOffX;
+    ib.position.z+=dz*0.2;
+    ib.position.x=rcX*0.2+ib._side*ib._baseOffX;
     if(ib.position.z>PLAYER_Z+5){
-      ib.position.z-=14*4.5+5;
-      ib._baseOffX=ROAD_HW+2+Math.random()*4;
+      ib.position.z-=8*8+13;
+      ib._baseOffX=ROAD_HW+3+Math.random()*3;
     }
   });
 
