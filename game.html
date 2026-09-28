@@ -177,8 +177,8 @@ var WZ_SCALE=0.08;
 var OBJ_SPAWN_WZ=480;
 
 // === MATERIALS ===
-var matRoad0=new THREE.MeshLambertMaterial({color:0xeef8ff});
-var matRoad1=new THREE.MeshLambertMaterial({color:0xfbfeff});
+var matRoad0=new THREE.MeshLambertMaterial({color:0xf2f9ff});
+var matRoad1=matRoad0;
 var matGap=new THREE.MeshLambertMaterial({color:0x0d5080});
 var matSea=new THREE.MeshLambertMaterial({color:0x1a80c0});
 var matSnowBank=new THREE.MeshPhongMaterial({color:0xffffff,shininess:30});
@@ -307,18 +307,18 @@ penguin.rotation.y=Math.PI; // face forward (away from camera, toward map)
 scene.add(penguin);
 
 // === SNOW PARTICLES ===
-var SNOW_N=300;
+var SNOW_N=100;
 var snowPos=new Float32Array(SNOW_N*3);
 var snowSpd=[];
 for(var _s=0;_s<SNOW_N;_s++){
   snowPos[_s*3]=(Math.random()-0.5)*30;
   snowPos[_s*3+1]=Math.random()*22;
   snowPos[_s*3+2]=(Math.random()-0.5)*25+PLAYER_Z;
-  snowSpd.push(0.04+Math.random()*0.06);
+  snowSpd.push(0.05+Math.random()*0.02);
 }
 var snowGeo=new THREE.BufferGeometry();
 snowGeo.setAttribute('position',new THREE.BufferAttribute(snowPos,3));
-var snowPts=new THREE.Points(snowGeo,new THREE.PointsMaterial({color:0xffffff,size:0.12,sizeAttenuation:true,transparent:true,opacity:0.8}));
+var snowPts=new THREE.Points(snowGeo,new THREE.PointsMaterial({color:0xffffff,size:0.18,sizeAttenuation:true,transparent:true,opacity:0.6}));
 scene.add(snowPts);
 
 // === BURST PARTICLES ===
@@ -673,7 +673,7 @@ function doJump(){
   else if(spJC<2&&dblJ){spvy=12;spJC=2;dblJ=false;beep(659,.09,cfg.sfxVol*.32);burst3D(penguin.position.x,penguin.position.y,PLAYER_Z,0x44ffff,6);}
 }
 
-var _camX=0;
+var _camX=0,_camLX=0,_camLZ=-3;
 function update(){
   if(gs!=='play')return;
   spd=Math.min(spd+.00045,13);worldZ+=spd;dist=worldZ/20;
@@ -733,9 +733,11 @@ function update(){
 
   // Camera follows road curve organically
   _camX+=((rcX*.45)-_camX)*.055;
+  var _tgX=rcX*.25+penguin.position.x*.2;
+  _camLX+=(_tgX-_camLX)*.07;
   camera.position.x=_camX;
   camera.position.y=5;
-  camera.lookAt(rcX*.25+penguin.position.x*.2,0.5,-3);
+  camera.lookAt(_camLX,0.5,-3);
 
   // Road scroll
   var dz=spd*WZ_SCALE;
@@ -783,11 +785,12 @@ function update(){
     var wz3=wz2z(wz);
     // Objects move with current road center (organic, no lateral drift)
     var wx=rcX+ao.obj.rx*ROAD_HW;
-    var _fishBase=ao.obj.hy?0.95:0.38; // high fish float at 0.95 (jump to reach)
-    var wy=ao.obj.k==='fish'||ao.obj.k==='boost'?_fishBase+Math.sin(t*3+ao.obj.rx*5)*.13:0;
+    var _fishBase=ao.obj.hy?0.95:0.38;
+    var wy=ao.obj.k==='fish'||ao.obj.k==='boost'?_fishBase+Math.sin(t*2.5)*.1:0;
     ao.mesh.position.set(wx,wy,wz3);
     ao.mesh.visible=wz3<PLAYER_Z+1&&wz>-15;
-    if(ao.obj.k==='fish'||ao.obj.k==='boost')ao.mesh.rotation.y+=0.05;
+    if(ao.obj.k==='fish')ao.mesh.rotation.y=Math.PI;
+    if(ao.obj.k==='boost')ao.mesh.rotation.y+=0.04;
     if(ao.obj.k==='octo')ao.mesh.rotation.y+=0.015;
     if(ao.mesh._ring)ao.mesh._ring.rotation.z+=0.06;
     // Gate door opening animation
@@ -820,7 +823,7 @@ function update(){
   var sp=snowGeo.attributes.position;
   for(var si=0;si<SNOW_N;si++){
     sp.array[si*3+1]-=snowSpd[si];
-    sp.array[si*3]+=Math.sin(t*0.8+si)*.01;
+    sp.array[si*3]+=Math.sin(t*0.5+si*0.3)*.004;
     if(sp.array[si*3+1]<-1){sp.array[si*3+1]=20;sp.array[si*3]=(Math.random()-.5)*30;}
   }
   sp.needsUpdate=true;
