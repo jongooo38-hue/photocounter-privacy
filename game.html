@@ -169,7 +169,7 @@ var clouds=[];
 });
 
 // === CONSTANTS ===
-var ROAD_HW=2.5;
+var ROAD_HW=3.2;
 var SEG_LEN=2.5;
 var N_SEGS=18;
 var PLAYER_Z=4.0;
@@ -204,7 +204,7 @@ for(var _i=0;_i<N_SEGS;_i++){
 }
 function buildRoadSeg(idx){
   var g=new THREE.Group();
-  var road=new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HW*2,SEG_LEN),idx%2===0?matRoad0:matRoad1);
+  var road=new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HW*2+0.2,SEG_LEN+0.1),idx%2===0?matRoad0:matRoad1);
   road.rotation.x=-Math.PI/2;road.receiveShadow=true;
   g.add(road);g._road=road;g._roadIdx=idx;
   // Snow banks (rounded capsule shape)
@@ -237,8 +237,10 @@ function makeSideIceberg(){
 }
 for(var _j=0;_j<14;_j++){
   var ib=makeSideIceberg();
-  ib.position.x=(_j%2===0?-1:1)*(5+Math.random()*5);
+  var _ibSide=(_j%2===0?-1:1);
+  ib.position.x=_ibSide*(ROAD_HW+2+Math.random()*4);
   ib.position.z=-_j*4.5-5;
+  ib._side=_ibSide;ib._baseOffX=ROAD_HW+2+Math.random()*4;
   scene.add(ib);
   sideIcebergs.push(ib);
 }
@@ -552,6 +554,7 @@ var pathHist=new Array(N_SEGS+4).fill(0);
 var pathAngHist=new Array(N_SEGS+4).fill(0);
 var pathAccum=0;
 var nextGateWZ=20000;
+var _rcXPrev=0;
 var bestDist=0;
 try{bestDist=parseInt(localStorage.getItem('spgb')||'0');}catch(e){}
 var activeObjs=[];
@@ -571,7 +574,7 @@ function initGame(){
   invT=0;inkT=0;magT=0;dblJ=false;
   rcX=0;rcTarget=0;rcTimer=0;rcDir=1;
   for(var _ph=0;_ph<pathHist.length;_ph++){pathHist[_ph]=0;pathAngHist[_ph]=0;}
-  pathAccum=0;nextGateWZ=20000;
+  pathAccum=0;nextGateWZ=20000;_rcXPrev=0;
   objs=[];gaps=[];nxtSpawn=140;
   activeObjs.forEach(function(ao){scene.remove(ao.mesh);});activeObjs=[];
   bursts.forEach(function(b){burstGroup.remove(b.mesh);});bursts.length=0;
@@ -682,6 +685,10 @@ function update(){
     nextGateWZ+=20000;
   }
 
+  // Road drift: when road curves, player is pushed off center (must steer to compensate)
+  var _rcXD=rcX-_rcXPrev;_rcXPrev=rcX;
+  spx-=_rcXD*0.32/ROAD_HW;
+
   // Input
   var tx=0;
   if(gyroOn)tx=gyroInput();
@@ -716,11 +723,11 @@ function update(){
   if(penguin._footR)penguin._footR.position.z=0.15-Math.sin(t*7)*.1;
   penguin.visible=invT<=0||Math.floor(invT/5)%2===0;
 
-  // Camera follows curve with slight banking
-  _camX+=((rcX*.35)-_camX)*.04;
+  // Camera follows road curve organically
+  _camX+=((rcX*.45)-_camX)*.055;
   camera.position.x=_camX;
-  camera.position.y=5+Math.sin(pathAngHist[0])*0.4;
-  camera.lookAt(_camX*.7,0.5,-3);
+  camera.position.y=5;
+  camera.lookAt(rcX*.25+penguin.position.x*.2,0.5,-3);
 
   // Road scroll
   var dz=spd*WZ_SCALE;
@@ -739,7 +746,7 @@ function update(){
     var segX=x0+(x1-x0)*frac;
     var segA=pathAngHist[Math.min(slot,maxS)];
     seg.group.position.set(segX,0,seg.z3D);
-    seg.group.rotation.y=segA;
+    seg.group.rotation.y=0;
     // Gap check
     var segGameZ=worldZ+depth/WZ_SCALE;
     var isGap=false;
@@ -747,12 +754,13 @@ function update(){
     setSegGap(seg,isGap);
   });
 
-  // Side icebergs scroll for parallax
+  // Side icebergs scroll for parallax, follow road curve slightly
   sideIcebergs.forEach(function(ib){
     ib.position.z+=dz*0.4;
+    ib.position.x=rcX*0.35+ib._side*ib._baseOffX;
     if(ib.position.z>PLAYER_Z+5){
       ib.position.z-=14*4.5+5;
-      ib.position.x=(Math.random()>.5?1:-1)*(5+Math.random()*5);
+      ib._baseOffX=ROAD_HW+2+Math.random()*4;
     }
   });
 
@@ -765,13 +773,8 @@ function update(){
     if(ao.obj.got||ao.obj.hit){toRemove.push(ao);return;}
     var wz=ao.obj.wz;
     var wz3=wz2z(wz);
-    // Use path history for accurate X along the curve
-    var depth=PLAYER_Z-wz3;
-    var slotF3=Math.max(0,depth/SEG_LEN);
-    var slot3=Math.floor(slotF3);
-    var maxS3=pathHist.length-2;
-    var pathX=pathHist[Math.min(slot3,maxS3)];
-    var wx=pathX+ao.obj.rx*ROAD_HW;
+    // Objects move with current road center (organic, no lateral drift)
+    var wx=rcX+ao.obj.rx*ROAD_HW;
     var wy=ao.obj.k==='fish'||ao.obj.k==='boost'?0.35+Math.sin(t*3+ao.obj.rx*5)*.12:0;
     ao.mesh.position.set(wx,wy,wz3);
     ao.mesh.visible=wz3<PLAYER_Z+1&&wz>-15;
