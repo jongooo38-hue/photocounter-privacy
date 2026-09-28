@@ -98,17 +98,17 @@ renderer.shadowMap.type=THREE.PCFSoftShadowMap;
 wrap.insertBefore(renderer.domElement,wrap.firstChild);
 
 var scene=new THREE.Scene();
-scene.background=new THREE.Color(0x4a9fd8);
-scene.fog=new THREE.FogExp2(0x87ceeb,0.018);
+scene.background=new THREE.Color(0x70d8f8);
+scene.fog=new THREE.FogExp2(0xb0e8ff,0.014);
 
 var camera=new THREE.PerspectiveCamera(60,360/640,0.1,80);
 camera.position.set(0,5,9);
 camera.lookAt(0,0.5,-5);
 
 // === LIGHTING ===
-var ambLight=new THREE.AmbientLight(0xaad4ff,1.0);
+var ambLight=new THREE.AmbientLight(0xc8e8ff,1.5);
 scene.add(ambLight);
-var sun=new THREE.DirectionalLight(0xfff5dd,1.6);
+var sun=new THREE.DirectionalLight(0xfffce8,2.1);
 sun.position.set(6,14,4);
 sun.castShadow=true;
 sun.shadow.mapSize.width=1024;
@@ -130,7 +130,7 @@ var skyMat=new THREE.ShaderMaterial({
   side:THREE.BackSide,
   uniforms:{},
   vertexShader:'varying vec3 vPos;void main(){vPos=position;gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.);}',
-  fragmentShader:'varying vec3 vPos;void main(){float t=clamp((normalize(vPos).y+0.1)*1.2,0.,1.);vec3 top=vec3(0.24,0.55,0.84);vec3 bot=vec3(0.65,0.87,0.96);gl_FragColor=vec4(mix(bot,top,t),1.);}'
+  fragmentShader:'varying vec3 vPos;void main(){float t=clamp((normalize(vPos).y+0.1)*1.2,0.,1.);vec3 top=vec3(0.22,0.55,0.92);vec3 bot=vec3(0.72,0.93,1.0);gl_FragColor=vec4(mix(bot,top,t),1.);}'
 });
 scene.add(new THREE.Mesh(skyGeo,skyMat));
 
@@ -177,8 +177,8 @@ var WZ_SCALE=0.08;
 var OBJ_SPAWN_WZ=480;
 
 // === MATERIALS ===
-var matRoad0=new THREE.MeshLambertMaterial({color:0xe0f0ff});
-var matRoad1=new THREE.MeshLambertMaterial({color:0xeef8ff});
+var matRoad0=new THREE.MeshLambertMaterial({color:0xeef8ff});
+var matRoad1=new THREE.MeshLambertMaterial({color:0xfbfeff});
 var matGap=new THREE.MeshLambertMaterial({color:0x0d5080});
 var matSea=new THREE.MeshLambertMaterial({color:0x1a80c0});
 var matSnowBank=new THREE.MeshPhongMaterial({color:0xffffff,shininess:30});
@@ -207,11 +207,11 @@ function buildRoadSeg(idx){
   var road=new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HW*2,SEG_LEN),idx%2===0?matRoad0:matRoad1);
   road.rotation.x=-Math.PI/2;road.receiveShadow=true;
   g.add(road);g._road=road;g._roadIdx=idx;
-  // Snow banks
-  var bkL=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.28,SEG_LEN),matSnowBank);
-  bkL.position.set(-ROAD_HW-0.22,0.14,0);bkL.castShadow=true;bkL.receiveShadow=true;g.add(bkL);
-  var bkR=new THREE.Mesh(new THREE.BoxGeometry(0.45,0.28,SEG_LEN),matSnowBank);
-  bkR.position.set(ROAD_HW+0.22,0.14,0);bkR.castShadow=true;bkR.receiveShadow=true;g.add(bkR);
+  // Snow banks (rounded capsule shape)
+  var bkL=new THREE.Mesh(new THREE.CapsuleGeometry(0.22,SEG_LEN-0.6,6,10),matSnowBank);
+  bkL.rotation.z=Math.PI/2;bkL.position.set(-ROAD_HW-0.22,0.22,0);bkL.castShadow=true;bkL.receiveShadow=true;g.add(bkL);
+  var bkR=new THREE.Mesh(new THREE.CapsuleGeometry(0.22,SEG_LEN-0.6,6,10),matSnowBank);
+  bkR.rotation.z=Math.PI/2;bkR.position.set(ROAD_HW+0.22,0.22,0);bkR.castShadow=true;bkR.receiveShadow=true;g.add(bkR);
   g._banks=[bkL,bkR];
   return{group:g,z3D:0,isGap:false,idx:idx};
 }
@@ -420,6 +420,46 @@ function mkDoor(){
   });
   return g;
 }
+function mkGate(){
+  var g=new THREE.Group();
+  var pilMat=new THREE.MeshPhongMaterial({color:0xd4c090,shininess:25});
+  var archMat=new THREE.MeshPhongMaterial({color:0xffcc44,shininess:180,emissive:0xcc7700,emissiveIntensity:0.35});
+  var dMat=new THREE.MeshPhongMaterial({color:0x9a6810,shininess:70});
+  // Pillars
+  [-1,1].forEach(function(s){
+    var pil=new THREE.Mesh(new THREE.CylinderGeometry(0.52,0.6,5.2,10),pilMat);
+    pil.position.set(s*(ROAD_HW+0.55),2.6,0);pil.castShadow=true;g.add(pil);
+    var cap=new THREE.Mesh(new THREE.SphereGeometry(0.7,10,8),archMat);
+    cap.position.set(s*(ROAD_HW+0.55),5.5,0);g.add(cap);
+  });
+  // Top arch beam
+  var beam=new THREE.Mesh(new THREE.BoxGeometry(ROAD_HW*2+1.0,0.7,0.8),archMat);
+  beam.position.set(0,5.2,0);g.add(beam);
+  // Rounded torus arch
+  var aRing=new THREE.Mesh(new THREE.TorusGeometry(ROAD_HW+0.1,0.32,10,36,Math.PI),archMat);
+  aRing.rotation.z=Math.PI;aRing.position.set(0,5.2,0);g.add(aRing);
+  // Arch decoration balls
+  for(var ad=0;ad<7;ad++){
+    var bx=(ad-3)*ROAD_HW*0.36;
+    var ball=new THREE.Mesh(new THREE.SphereGeometry(0.19,8,6),new THREE.MeshPhongMaterial({color:0xffee88,shininess:220,emissive:0xffaa00,emissiveIntensity:0.6}));
+    ball.position.set(bx,5.75,0);g.add(ball);
+  }
+  // Left door pivot (hinge at x=-ROAD_HW)
+  var pivL=new THREE.Group();pivL.position.set(-ROAD_HW,0.9,0);
+  var meshL=new THREE.Mesh(new THREE.BoxGeometry(ROAD_HW,3.9,0.24),dMat);meshL.position.x=ROAD_HW/2;meshL.castShadow=true;
+  for(var dr=0;dr<3;dr++){var det=new THREE.Mesh(new THREE.BoxGeometry(ROAD_HW*0.55,0.65,0.07),archMat);det.position.set(ROAD_HW/2,-0.55+dr*1.0,0.13);meshL.add(det);}
+  pivL.add(meshL);g.add(pivL);g._doorL=pivL;
+  // Right door pivot (hinge at x=+ROAD_HW)
+  var pivR=new THREE.Group();pivR.position.set(ROAD_HW,0.9,0);
+  var meshR=new THREE.Mesh(new THREE.BoxGeometry(ROAD_HW,3.9,0.24),dMat);meshR.position.x=-ROAD_HW/2;meshR.castShadow=true;
+  for(var dr2=0;dr2<3;dr2++){var det2=new THREE.Mesh(new THREE.BoxGeometry(ROAD_HW*0.55,0.65,0.07),archMat);det2.position.set(-ROAD_HW/2,-0.55+dr2*1.0,0.13);meshR.add(det2);}
+  pivR.add(meshR);g.add(pivR);g._doorR=pivR;
+  return g;
+}
+function playFanfare(){
+  var notes=[523,659,784,1047,1319,1568];
+  notes.forEach(function(f,i){setTimeout(function(){beep(f,.22,cfg.sfxVol*.55);},i*90);});
+}
 function mkBoost(bt){
   var cols={mag:0xff2222,inv:0xffee00,dbl:0x00eeff,chest:0xffcc00};var c=cols[bt]||0xff88ff;
   var g=new THREE.Group();
@@ -508,6 +548,10 @@ function gyroMax(){return 62-(cfg.gyroSens-1)*5;}
 var gs='menu',dist,fishCnt,lives,worldZ,spd;
 var spx,spy,spvy,spJump,spJC,invT,inkT,magT,dblJ;
 var rcX,rcTarget,rcTimer,rcDir,objs,gaps,nxtSpawn;
+var pathHist=new Array(N_SEGS+4).fill(0);
+var pathAngHist=new Array(N_SEGS+4).fill(0);
+var pathAccum=0;
+var nextGateWZ=20000;
 var bestDist=0;
 try{bestDist=parseInt(localStorage.getItem('spgb')||'0');}catch(e){}
 var activeObjs=[];
@@ -526,6 +570,8 @@ function initGame(){
   spx=0;spy=0;spvy=0;spJump=false;spJC=0;
   invT=0;inkT=0;magT=0;dblJ=false;
   rcX=0;rcTarget=0;rcTimer=0;rcDir=1;
+  for(var _ph=0;_ph<pathHist.length;_ph++){pathHist[_ph]=0;pathAngHist[_ph]=0;}
+  pathAccum=0;nextGateWZ=20000;
   objs=[];gaps=[];nxtSpawn=140;
   activeObjs.forEach(function(ao){scene.remove(ao.mesh);});activeObjs=[];
   bursts.forEach(function(b){burstGroup.remove(b.mesh);});bursts.length=0;
@@ -572,6 +618,7 @@ function spawnMesh(obj){
   else if(obj.k==='octo')mesh=mkOcto();
   else if(obj.k==='door')mesh=mkDoor();
   else if(obj.k==='boost')mesh=mkBoost(obj.bt);
+  else if(obj.k==='gate')mesh=mkGate();
   else return;
   mesh.position.set(rcX+obj.rx*ROAD_HW,obj.k==='fish'||obj.k==='boost'?0.35:0,wz2z(obj.wz));
   scene.add(mesh);
@@ -618,8 +665,22 @@ function update(){
 
   // Curve
   rcTimer--;
-  if(rcTimer<=0){rcDir=-rcDir;rcTarget=rcDir*(1.0+Math.random()*1.2);rcTimer=70+Math.random()*90;}
+  if(rcTimer<=0){rcDir=-rcDir;rcTarget=rcDir*(2.2+Math.random()*1.4);rcTimer=65+Math.random()*80;}
   rcX+=(rcTarget-rcX)*.022;
+  // Push path history every SEG_LEN of scroll
+  var _dz=spd*WZ_SCALE;
+  pathAccum+=_dz;
+  while(pathAccum>=SEG_LEN){
+    pathAccum-=SEG_LEN;
+    pathHist.unshift(rcX);pathHist.pop();
+    pathAngHist.unshift((rcTarget-rcX)*0.045);pathAngHist.pop();
+  }
+  // Spawn milestone gate
+  if(nextGateWZ-worldZ<=OBJ_SPAWN_WZ&&nextGateWZ>worldZ){
+    var gObj={k:'gate',wz:nextGateWZ-worldZ,rx:0,hit:false,opened:false,openAmt:0};
+    objs.push(gObj);spawnMesh(gObj);
+    nextGateWZ+=20000;
+  }
 
   // Input
   var tx=0;
@@ -655,10 +716,11 @@ function update(){
   if(penguin._footR)penguin._footR.position.z=0.15-Math.sin(t*7)*.1;
   penguin.visible=invT<=0||Math.floor(invT/5)%2===0;
 
-  // Camera
-  _camX+=((rcX*.3)-_camX)*.04;
+  // Camera follows curve with slight banking
+  _camX+=((rcX*.35)-_camX)*.04;
   camera.position.x=_camX;
-  camera.lookAt(_camX*.5,0.5,-3);
+  camera.position.y=5+Math.sin(pathAngHist[0])*0.4;
+  camera.lookAt(_camX*.7,0.5,-3);
 
   // Road scroll
   var dz=spd*WZ_SCALE;
@@ -667,10 +729,17 @@ function update(){
     if(seg.z3D>PLAYER_Z+SEG_LEN){
       seg.z3D-=N_SEGS*SEG_LEN;
     }
-    // Curve: near=full rcX, far=less
+    // Path history curve: each segment follows recorded path
     var depth=PLAYER_Z-seg.z3D;
-    var curveFactor=Math.max(0,1-depth/(N_SEGS*SEG_LEN));
-    seg.group.position.set(rcX*curveFactor,0,seg.z3D);
+    var slotF=Math.max(0,depth/SEG_LEN);
+    var slot=Math.floor(slotF);var frac=slotF-slot;
+    var maxS=pathHist.length-2;
+    var x0=pathHist[Math.min(slot,maxS)];
+    var x1=pathHist[Math.min(slot+1,maxS)];
+    var segX=x0+(x1-x0)*frac;
+    var segA=pathAngHist[Math.min(slot,maxS)];
+    seg.group.position.set(segX,0,seg.z3D);
+    seg.group.rotation.y=segA;
     // Gap check
     var segGameZ=worldZ+depth/WZ_SCALE;
     var isGap=false;
@@ -695,15 +764,34 @@ function update(){
   activeObjs.forEach(function(ao){
     if(ao.obj.got||ao.obj.hit){toRemove.push(ao);return;}
     var wz=ao.obj.wz;
-    var wx=rcX+ao.obj.rx*ROAD_HW;
     var wz3=wz2z(wz);
+    // Use path history for accurate X along the curve
+    var depth=PLAYER_Z-wz3;
+    var slotF3=Math.max(0,depth/SEG_LEN);
+    var slot3=Math.floor(slotF3);
+    var maxS3=pathHist.length-2;
+    var pathX=pathHist[Math.min(slot3,maxS3)];
+    var wx=pathX+ao.obj.rx*ROAD_HW;
     var wy=ao.obj.k==='fish'||ao.obj.k==='boost'?0.35+Math.sin(t*3+ao.obj.rx*5)*.12:0;
     ao.mesh.position.set(wx,wy,wz3);
     ao.mesh.visible=wz3<PLAYER_Z+1&&wz>-15;
     if(ao.obj.k==='fish'||ao.obj.k==='boost')ao.mesh.rotation.y+=0.05;
     if(ao.obj.k==='octo')ao.mesh.rotation.y+=0.015;
-    // Spin the orbit rings
     if(ao.mesh._ring)ao.mesh._ring.rotation.z+=0.06;
+    // Gate door opening animation
+    if(ao.obj.k==='gate'&&!ao.obj.opened&&ao.obj.wz<35){
+      ao.obj.openAmt=Math.min(1,ao.obj.openAmt+0.025);
+      var oa=ao.obj.openAmt*Math.PI/2;
+      if(ao.mesh._doorL)ao.mesh._doorL.rotation.y=-oa;
+      if(ao.mesh._doorR)ao.mesh._doorR.rotation.y=oa;
+      if(ao.obj.openAmt>=1){
+        ao.obj.opened=true;
+        lives=Math.min(6,lives+1);
+        playFanfare();
+        burst3D(penguin.position.x,1.5,PLAYER_Z,0xffee44,24);
+        updateHUD();
+      }
+    }
   });
   toRemove.forEach(function(ao){scene.remove(ao.mesh);activeObjs.splice(activeObjs.indexOf(ao),1);});
 
