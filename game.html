@@ -207,12 +207,19 @@ function buildRoadSeg(idx){
   var road=new THREE.Mesh(new THREE.PlaneGeometry(ROAD_HW*2+0.2,SEG_LEN+0.1),idx%2===0?matRoad0:matRoad1);
   road.rotation.x=-Math.PI/2;road.receiveShadow=true;
   g.add(road);g._road=road;g._roadIdx=idx;
-  // Snow banks (rounded capsule shape)
-  var bkL=new THREE.Mesh(new THREE.CapsuleGeometry(0.22,SEG_LEN-0.6,6,10),matSnowBank);
-  bkL.rotation.z=Math.PI/2;bkL.position.set(-ROAD_HW-0.22,0.22,0);bkL.castShadow=true;bkL.receiveShadow=true;g.add(bkL);
-  var bkR=new THREE.Mesh(new THREE.CapsuleGeometry(0.22,SEG_LEN-0.6,6,10),matSnowBank);
-  bkR.rotation.z=Math.PI/2;bkR.position.set(ROAD_HW+0.22,0.22,0);bkR.castShadow=true;bkR.receiveShadow=true;g.add(bkR);
-  g._banks=[bkL,bkR];
+  // Snow mounds: flat base + dome bumps
+  var snowObjs=[];
+  [-1,1].forEach(function(s){
+    var bx=s*(ROAD_HW+0.55);
+    var base=new THREE.Mesh(new THREE.BoxGeometry(1.1,0.16,SEG_LEN+0.08),matSnowBank);
+    base.position.set(bx,0.08,0);base.receiveShadow=true;g.add(base);snowObjs.push(base);
+    for(var bi=0;bi<3;bi++){
+      var bmp=new THREE.Mesh(new THREE.SphereGeometry(0.28,10,7),matSnowBank);
+      bmp.scale.set(1,0.65,0.9);
+      bmp.position.set(bx,0.22,-0.75+bi*0.75);bmp.castShadow=true;g.add(bmp);snowObjs.push(bmp);
+    }
+  });
+  g._banks=snowObjs;
   return{group:g,z3D:0,isGap:false,idx:idx};
 }
 function setSegGap(seg,isGap){
@@ -586,10 +593,13 @@ function spawnSeg(){
   var gapSz={easy:190,normal:150,hard:110}[cfg.difficulty]||190;
   if(Math.random()>=oR){
     var fts=['o','o','o','b','b','g','d'];
-    var n=2+Math.floor(Math.random()*4);
-    var rxs=[-0.65,-0.35,0,0.35,0.65].sort(function(){return Math.random()-.5;}).slice(0,n);
+    var n=4+Math.floor(Math.random()*4);
+    // Longitudinal line: same rx, staggered wz so player runs through them forward
+    var lineRx=(Math.random()-0.5)*1.1;
+    var lineSpacing=32+Math.random()*18;
     for(var i=0;i<n;i++){
-      var fo={k:'fish',ft:fts[Math.floor(Math.random()*fts.length)],wz:nxtSpawn+Math.random()*25,rx:rxs[i],got:false};
+      var hy=Math.random()<0.22; // 22% float high (needs jump)
+      var fo={k:'fish',ft:fts[Math.floor(Math.random()*fts.length)],wz:nxtSpawn+i*lineSpacing,rx:lineRx+(Math.random()-0.5)*0.15,got:false,hy:hy};
       objs.push(fo);spawnMesh(fo);
     }
     if(Math.random()<.1){
@@ -641,7 +651,9 @@ function collide(){
   for(var i=0;i<objs.length;i++){
     var o=objs[i];if(o.got||o.hit)continue;if(o.wz>15||o.wz<-5)continue;
     var dx=Math.abs(spx-o.rx);
-    if(o.k==='fish'&&dx<.19){o.got=true;var fc=fcol(o.ft);fishCnt+=fc.p;beep(880,.07,cfg.sfxVol*.3);burst3D(penguin.position.x,0.5,PLAYER_Z,fc.col);}
+    // High fish: need jump (spy>8); low fish: on ground or jump both OK
+    var canEat=o.k==='fish'&&dx<.21&&(o.hy?spy>8:spy<60);
+    if(canEat){o.got=true;var fc=fcol(o.ft);fishCnt+=fc.p;beep(880,.07,cfg.sfxVol*.3);burst3D(penguin.position.x,penguin.position.y+0.4,PLAYER_Z,fc.col);}
     else if(o.k==='boost'&&dx<.21){o.got=true;applyBoost(o.bt);beep(1047,.12,cfg.sfxVol*.28);burst3D(penguin.position.x,0.5,PLAYER_Z,0xffee88,12);}
     else if(o.k==='ice'&&dx<.15&&spy<18){o.hit=true;hitPlayer();}
     else if(o.k==='octo'&&dx<.22){o.hit=true;inkT=200;document.getElementById('inkScreen').style.background='rgba(15,0,30,.85)';hitPlayer();}
@@ -684,10 +696,6 @@ function update(){
     objs.push(gObj);spawnMesh(gObj);
     nextGateWZ+=20000;
   }
-
-  // Road drift: when road curves, player is pushed off center (must steer to compensate)
-  var _rcXD=rcX-_rcXPrev;_rcXPrev=rcX;
-  spx-=_rcXD*0.32/ROAD_HW;
 
   // Input
   var tx=0;
@@ -775,7 +783,8 @@ function update(){
     var wz3=wz2z(wz);
     // Objects move with current road center (organic, no lateral drift)
     var wx=rcX+ao.obj.rx*ROAD_HW;
-    var wy=ao.obj.k==='fish'||ao.obj.k==='boost'?0.35+Math.sin(t*3+ao.obj.rx*5)*.12:0;
+    var _fishBase=ao.obj.hy?0.95:0.38; // high fish float at 0.95 (jump to reach)
+    var wy=ao.obj.k==='fish'||ao.obj.k==='boost'?_fishBase+Math.sin(t*3+ao.obj.rx*5)*.13:0;
     ao.mesh.position.set(wx,wy,wz3);
     ao.mesh.visible=wz3<PLAYER_Z+1&&wz>-15;
     if(ao.obj.k==='fish'||ao.obj.k==='boost')ao.mesh.rotation.y+=0.05;
